@@ -1,4 +1,4 @@
-# MyApplication1
+# KenemiMusic-Desktop
 
 This is a Kotlin Multiplatform project targeting Android, Desktop (JVM).
 

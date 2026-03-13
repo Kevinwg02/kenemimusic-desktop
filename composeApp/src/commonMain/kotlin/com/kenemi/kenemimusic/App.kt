@@ -43,11 +43,11 @@ fun App(
     playerState: PlayerStateHolder = remember { PlayerStateHolder() },
     playerController: PlayerActions? = null,
     favoritesState: FavoritesState = remember { FavoritesState() },
+    playlistsState: PlaylistsState = remember { PlaylistsState() },
     initialDarkTheme: Boolean = true
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.PLAYER) }
     var isDarkTheme by remember { mutableStateOf(initialDarkTheme) }
-
     val actions = playerController ?: LocalPlayerActions.current
 
     CompositionLocalProvider(
@@ -55,85 +55,54 @@ fun App(
         LocalPlayerState provides playerState,
         LocalPlayerActions provides actions,
         LocalFavorites provides favoritesState,
+        LocalPlaylists provides playlistsState,
     ) {
         KenemiMusicTheme(darkTheme = isDarkTheme) {
             if (isDesktop) {
-                DesktopLayout(
-                    currentScreen = currentScreen,
-                    onScreenChange = { currentScreen = it },
-                    isDarkTheme = isDarkTheme,
-                    onThemeToggle = { isDarkTheme = !isDarkTheme }
-                )
+                DesktopLayout(currentScreen, { currentScreen = it }, isDarkTheme, { isDarkTheme = !isDarkTheme })
             } else {
-                AndroidLayout(
-                    currentScreen = currentScreen,
-                    onScreenChange = { currentScreen = it },
-                    isDarkTheme = isDarkTheme,
-                    onThemeToggle = { isDarkTheme = !isDarkTheme }
-                )
+                AndroidLayout(currentScreen, { currentScreen = it }, isDarkTheme, { isDarkTheme = !isDarkTheme })
             }
         }
     }
 }
 
 @Composable
-fun MainContent(
-    currentScreen: Screen,
-    onScreenChange: (Screen) -> Unit,
-    isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit
-) {
-    when (val screen = currentScreen) {
-        is Screen.PLAYER    -> PlayerScreenDesktop()
+fun ScreenContent(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
+                  isDarkTheme: Boolean, onThemeToggle: () -> Unit, isDesktop: Boolean) {
+    when (val s = currentScreen) {
+        is Screen.PLAYER    -> if (isDesktop) PlayerScreenDesktop() else PlayerScreenAndroid()
         is Screen.SONGS     -> SongsScreen()
         is Screen.ARTISTS   -> ArtistsScreen(onArtistClick = { onScreenChange(Screen.ARTIST_DETAIL(it)) })
         is Screen.ALBUMS    -> AlbumsScreen(onAlbumClick = { onScreenChange(Screen.ALBUM_DETAIL(it)) })
-        is Screen.PLAYLISTS -> PlaceholderScreen("Playlists")
+        is Screen.FAVORITES -> FavoritesScreen()
+        is Screen.PLAYLISTS -> PlaylistsScreen(onPlaylistClick = { onScreenChange(Screen.PLAYLIST_DETAIL(it)) })
         is Screen.STATS     -> PlaceholderScreen("Statistiques")
         is Screen.SETTINGS  -> SettingsScreen(isDarkTheme = isDarkTheme, onThemeToggle = onThemeToggle)
-        is Screen.ARTIST_DETAIL -> ArtistDetailScreen(artistName = screen.artistName, onBack = { onScreenChange(Screen.ARTISTS) })
-        is Screen.ALBUM_DETAIL  -> AlbumDetailScreen(albumId = screen.albumId, onBack = { onScreenChange(Screen.ALBUMS) })
-        is Screen.FAVORITES -> FavoritesScreen()
+        is Screen.ARTIST_DETAIL   -> ArtistDetailScreen(artistName = s.artistName, onBack = { onScreenChange(Screen.ARTISTS) })
+        is Screen.ALBUM_DETAIL    -> AlbumDetailScreen(albumId = s.albumId, onBack = { onScreenChange(Screen.ALBUMS) })
+        is Screen.PLAYLIST_DETAIL -> PlaylistDetailScreen(playlistId = s.playlistId, onBack = { onScreenChange(Screen.PLAYLISTS) })
     }
 }
 
 @Composable
-fun MainContentAndroid(
-    currentScreen: Screen,
-    onScreenChange: (Screen) -> Unit,
-    isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit
-) {
-    when (val screen = currentScreen) {
-        is Screen.PLAYER    -> PlayerScreenAndroid()
-        is Screen.SONGS     -> SongsScreen()
-        is Screen.ARTISTS   -> ArtistsScreen(onArtistClick = { onScreenChange(Screen.ARTIST_DETAIL(it)) })
-        is Screen.ALBUMS    -> AlbumsScreen(onAlbumClick = { onScreenChange(Screen.ALBUM_DETAIL(it)) })
-        is Screen.PLAYLISTS -> PlaceholderScreen("Playlists")
-        is Screen.STATS     -> PlaceholderScreen("Statistiques")
-        is Screen.SETTINGS  -> SettingsScreen(isDarkTheme = isDarkTheme, onThemeToggle = onThemeToggle)
-        is Screen.ARTIST_DETAIL -> ArtistDetailScreen(artistName = screen.artistName, onBack = { onScreenChange(Screen.ARTISTS) })
-        is Screen.ALBUM_DETAIL  -> AlbumDetailScreen(albumId = screen.albumId, onBack = { onScreenChange(Screen.ALBUMS) })
-        is Screen.FAVORITES -> FavoritesScreen()
-    }
-}
-
-@Composable
-fun DesktopLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit, isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
+fun DesktopLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
+                  isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
     Row(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Sidebar(currentScreen = currentScreen, onScreenChange = onScreenChange)
         Box(modifier = Modifier.fillMaxHeight().width(0.5.dp).background(MaterialTheme.colorScheme.outline))
         Box(modifier = Modifier.fillMaxSize()) {
-            MainContent(currentScreen, onScreenChange, isDarkTheme, onThemeToggle)
+            ScreenContent(currentScreen, onScreenChange, isDarkTheme, onThemeToggle, isDesktop = true)
         }
     }
 }
 
 @Composable
-fun AndroidLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit, isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
+fun AndroidLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
+                  isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Box(modifier = Modifier.weight(1f)) {
-            MainContentAndroid(currentScreen, onScreenChange, isDarkTheme, onThemeToggle)
+            ScreenContent(currentScreen, onScreenChange, isDarkTheme, onThemeToggle, isDesktop = false)
         }
         BottomNavBar(currentScreen = currentScreen, onScreenChange = onScreenChange)
     }
@@ -142,14 +111,13 @@ fun AndroidLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit, isDar
 @Composable
 fun Sidebar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
     val activeScreen = when (currentScreen) {
-        is Screen.ARTIST_DETAIL -> Screen.ARTISTS
-        is Screen.ALBUM_DETAIL  -> Screen.ALBUMS
+        is Screen.ARTIST_DETAIL   -> Screen.ARTISTS
+        is Screen.ALBUM_DETAIL    -> Screen.ALBUMS
+        is Screen.PLAYLIST_DETAIL -> Screen.PLAYLISTS
         else -> currentScreen
     }
-    Column(
-        modifier = Modifier.width(200.dp).fillMaxHeight()
-            .background(MaterialTheme.colorScheme.surface).padding(vertical = 16.dp)
-    ) {
+    Column(modifier = Modifier.width(200.dp).fillMaxHeight()
+        .background(MaterialTheme.colorScheme.surface).padding(vertical = 16.dp)) {
         Text("KENEMI MUSIC", fontSize = 12.sp, fontWeight = FontWeight.W500,
             color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.08.sp,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
@@ -162,11 +130,9 @@ fun Sidebar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             .height(0.5.dp).background(MaterialTheme.colorScheme.outline))
         Spacer(modifier = Modifier.height(8.dp))
-        SidebarItem(
-            item = NavItem(Screen.SETTINGS, "Paramètres", NavIcon.SETTINGS),
+        SidebarItem(item = NavItem(Screen.SETTINGS, "Paramètres", NavIcon.SETTINGS),
             isSelected = currentScreen is Screen.SETTINGS,
-            onClick = { onScreenChange(Screen.SETTINGS) }
-        )
+            onClick = { onScreenChange(Screen.SETTINGS) })
     }
 }
 
@@ -174,12 +140,10 @@ fun Sidebar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
 fun SidebarItem(item: NavItem, isSelected: Boolean, onClick: () -> Unit) {
     val bgColor = if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
     val textColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }
-            .background(bgColor).padding(horizontal = 16.dp, vertical = 10.dp),
+    Row(modifier = Modifier.fillMaxWidth().clickable { onClick() }
+        .background(bgColor).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
+        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Box(modifier = Modifier.width(2.dp).height(20.dp).background(
             if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent))
         NavIconComposable(icon = item.icon, tint = textColor)
@@ -191,8 +155,9 @@ fun SidebarItem(item: NavItem, isSelected: Boolean, onClick: () -> Unit) {
 @Composable
 fun BottomNavBar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
     val activeScreen = when (currentScreen) {
-        is Screen.ARTIST_DETAIL -> Screen.ARTISTS
-        is Screen.ALBUM_DETAIL  -> Screen.ALBUMS
+        is Screen.ARTIST_DETAIL   -> Screen.ARTISTS
+        is Screen.ALBUM_DETAIL    -> Screen.ALBUMS
+        is Screen.PLAYLIST_DETAIL -> Screen.PLAYLISTS
         else -> currentScreen
     }
     val bottomItems = navigationItems.filter {
@@ -200,21 +165,19 @@ fun BottomNavBar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
     }
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
         bottomItems.forEach { item ->
-            NavigationBarItem(
-                selected = activeScreen == item.screen,
+            NavigationBarItem(selected = activeScreen == item.screen,
                 onClick = { onScreenChange(item.screen) },
                 icon = { NavIconComposable(icon = item.icon,
                     tint = if (activeScreen == item.screen) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant) },
-                label = { Text(text = item.label, fontSize = 10.sp) },
+                label = { Text(item.label, fontSize = 10.sp) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            )
+                ))
         }
     }
 }
@@ -237,6 +200,6 @@ fun NavIconComposable(icon: NavIcon, tint: Color) {
 @Composable
 fun PlaceholderScreen(name: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = name, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(name, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

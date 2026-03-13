@@ -1,6 +1,5 @@
 package com.kenemi.kenemimusic
 
-import androidx.compose.runtime.*
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -15,18 +14,9 @@ fun main() = application {
     val playerState = PlayerStateHolder()
     val musicPlayer = MusicPlayer()
     val playerController = PlayerController(musicPlayer, playerState)
+    val favoritesState = FavoritesState().also { it.favoriteIds = FavoritesManager.load() }
+    val playlistsState = PlaylistsState().also { it.playlists = PlaylistsManager.load() }
 
-    // Charger les favoris
-    val favoritesState = FavoritesState().also {
-        it.favoriteIds = FavoritesManager.load()
-    }
-
-    // Observer les changements de favoris pour sauvegarder
-    CoroutineScope(Dispatchers.IO).launch {
-        // La sauvegarde se fait via onFavoriteToggle dans App
-    }
-
-    // Scan initial
     val savedFolder = SettingsManager.musicFolder
     if (savedFolder.isNotBlank()) {
         library.musicFolderPath = savedFolder
@@ -42,16 +32,15 @@ fun main() = application {
         }
     }
 
-    val windowState = rememberWindowState(size = DpSize(1100.dp, 700.dp))
-
     Window(
         onCloseRequest = {
             playerController.release()
             FavoritesManager.save(favoritesState.favoriteIds)
+            PlaylistsManager.save(playlistsState.playlists)
             exitApplication()
         },
         title = "Kenemi Music",
-        state = windowState,
+        state = rememberWindowState(size = DpSize(1100.dp, 700.dp)),
     ) {
         App(
             isDesktop = true,
@@ -59,6 +48,7 @@ fun main() = application {
             playerState = playerState,
             playerController = playerController,
             favoritesState = favoritesState,
+            playlistsState = playlistsState,
             initialDarkTheme = SettingsManager.isDarkTheme
         )
     }

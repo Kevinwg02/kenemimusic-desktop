@@ -3,10 +3,6 @@ package com.kenemi.kenemimusic
 import javax.swing.JFileChooser
 import javax.swing.UIManager
 
-// =====================================================
-// IMPLÉMENTATIONS DESKTOP (jvmMain)
-// =====================================================
-
 actual fun pickMusicFolder(currentPath: String): String? {
     return try {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
@@ -15,22 +11,16 @@ actual fun pickMusicFolder(currentPath: String): String? {
             dialogTitle = "Choisir le dossier musique"
             isAcceptAllFileFilterUsed = false
         }
-        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
             chooser.selectedFile.absolutePath
-        } else null
-    } catch (e: Exception) {
-        null
-    }
+        else null
+    } catch (e: Exception) { null }
 }
 
-actual fun scanMusicFolder(path: String): List<Song> {
-    return SongScanner.scanFolder(path)
-}
+actual fun scanMusicFolder(path: String): List<Song> = SongScanner.scanFolder(path)
 
-actual fun saveMusicFolder(path: String) {
-    SettingsManager.musicFolder = path
-}
+actual fun saveMusicFolder(path: String) { SettingsManager.musicFolder = path }
 
-actual fun saveFavorites(ids: Set<Long>) {
-    FavoritesManager.save(ids)
-}
+actual fun saveFavorites(ids: Set<Long>) { FavoritesManager.save(ids) }
+
+actual fun savePlaylists(playlists: List<Playlist>) { PlaylistsManager.save(playlists) }

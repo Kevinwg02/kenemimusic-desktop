@@ -1,9 +1,5 @@
 package com.kenemi.kenemimusic
 
-// =====================================================
-// TOUS LES MODÈLES DE DONNÉES
-// =====================================================
-
 data class Song(
     val id: Long = 0L,
     val title: String = "Titre inconnu",
@@ -28,4 +24,11 @@ data class Album(
     val year: Int = 0,
     val songCount: Int = 0,
     val coverUrl: String? = null
+)
+
+data class Playlist(
+    val id: Long,
+    val name: String,
+    val songIds: List<Long> = emptyList(),
+    val createdAt: Long = System.currentTimeMillis()
 )

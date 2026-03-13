@@ -12,6 +12,7 @@ sealed class Screen {
     data class ARTIST_DETAIL(val artistName: String) : Screen()
     data class ALBUM_DETAIL(val albumId: Long) : Screen()
     data class PLAYLIST_DETAIL(val playlistId: Long) : Screen()
+    object CURRENT_QUEUE : Screen()
 }
 
 data class NavItem(val screen: Screen, val label: String, val icon: NavIcon)

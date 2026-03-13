@@ -23,6 +23,8 @@ interface PlayerActions {
     fun toggleRepeat()
 }
 
+val LocalNavigate = staticCompositionLocalOf<(Screen) -> Unit> { {} }
+
 val LocalPlayerActions = staticCompositionLocalOf<PlayerActions> {
     object : PlayerActions {
         override fun play(song: Song) {}
@@ -56,6 +58,7 @@ fun App(
         LocalPlayerActions provides actions,
         LocalFavorites provides favoritesState,
         LocalPlaylists provides playlistsState,
+        LocalNavigate provides { currentScreen = it },
     ) {
         KenemiMusicTheme(darkTheme = isDarkTheme) {
             if (isDesktop) {
@@ -82,6 +85,7 @@ fun ScreenContent(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
         is Screen.ARTIST_DETAIL   -> ArtistDetailScreen(artistName = s.artistName, onBack = { onScreenChange(Screen.ARTISTS) })
         is Screen.ALBUM_DETAIL    -> AlbumDetailScreen(albumId = s.albumId, onBack = { onScreenChange(Screen.ALBUMS) })
         is Screen.PLAYLIST_DETAIL -> PlaylistDetailScreen(playlistId = s.playlistId, onBack = { onScreenChange(Screen.PLAYLISTS) })
+        is Screen.CURRENT_QUEUE   -> CurrentQueueScreen(onBack = { onScreenChange(Screen.PLAYER) })
     }
 }
 

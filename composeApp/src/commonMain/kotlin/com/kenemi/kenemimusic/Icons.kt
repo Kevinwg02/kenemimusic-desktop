@@ -269,6 +269,18 @@ object Icons {
             lineTo(17.59f, 19f); lineTo(19f, 17.59f); lineTo(13.41f, 12f); close()
         }
     }.build()
+
+    val DragHandle: ImageVector get() = ImageVector.Builder(
+        defaultWidth = 24.dp, defaultHeight = 24.dp,
+        viewportWidth = 24f, viewportHeight = 24f
+    ).apply {
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(3f, 15f); horizontalLineToRelative(18f); verticalLineToRelative(-2f)
+            horizontalLineTo(3f); close()
+            moveTo(3f, 11f); horizontalLineToRelative(18f); verticalLineToRelative(-2f)
+            horizontalLineTo(3f); close()
+        }
+    }.build()
 }
 
 // =====================================================

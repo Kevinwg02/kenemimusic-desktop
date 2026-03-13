@@ -1,19 +1,25 @@
 package com.kenemi.kenemimusic
 
-// =====================================================
-// PLAYER CONTROLLER (jvmMain)
-// Implémente PlayerActions (défini dans commonMain)
-// =====================================================
+import kotlinx.coroutines.*
 
 class PlayerController(
     private val player: MusicPlayer,
     private val state: PlayerStateHolder
 ) : PlayerActions {
 
+    // Scope sur le thread principal (Swing EDT pour desktop)
+    private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
     init {
-        player.onTrackFinished = { next() }
-        player.onPositionChanged = { pos -> state.progress = pos }
-        player.onTimeChanged = { ms -> state.currentMs = ms }
+        player.onTrackFinished = {
+            mainScope.launch { next() }
+        }
+        player.onPositionChanged = { pos ->
+            mainScope.launch { state.progress = pos }
+        }
+        player.onTimeChanged = { ms ->
+            mainScope.launch { state.currentMs = ms }
+        }
     }
 
     override fun play(song: Song) {
@@ -56,7 +62,6 @@ class PlayerController(
     override fun previous() {
         val queue = state.queue
         if (queue.isEmpty()) return
-        // Si > 3 secondes écoulées → revenir au début
         if (state.currentMs > 3000L) {
             seekTo(0f)
             return
@@ -74,5 +79,8 @@ class PlayerController(
     override fun toggleShuffle() { state.isShuffle = !state.isShuffle }
     override fun toggleRepeat()  { state.isRepeat  = !state.isRepeat  }
 
-    fun release() = player.release()
+    fun release() {
+        mainScope.cancel()
+        player.release()
+    }
 }

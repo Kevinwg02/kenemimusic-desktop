@@ -33,6 +33,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            implementation("sh.calvin.reorderable:reorderable:2.4.0")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -41,6 +42,8 @@ kotlin {
             implementation("net.jthink:jaudiotagger:3.0.1")
             // Lecture audio VLCJ
             implementation("uk.co.caprica:vlcj:4.8.2")
+            //drag & drop
+            implementation("sh.calvin.reorderable:reorderable:2.4.0")
         }
     }
 }

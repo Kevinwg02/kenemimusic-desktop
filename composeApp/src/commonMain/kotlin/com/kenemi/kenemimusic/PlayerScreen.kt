@@ -25,6 +25,7 @@ fun PlayerScreenDesktop() {
     val actions = LocalPlayerActions.current
     val library = LocalMusicLibrary.current
     val favorites = LocalFavorites.current
+    val navigate = LocalNavigate.current
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -49,7 +50,7 @@ fun PlayerScreenDesktop() {
                 onShuffleToggle = { actions.toggleShuffle() },
                 onRepeatToggle = { actions.toggleRepeat() },
                 onLyricsClick = { },
-                onCurrentSongClick = { },
+                onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
             )
         }
         Box(modifier = Modifier.fillMaxHeight().width(0.5.dp)
@@ -66,6 +67,7 @@ fun PlayerScreenAndroid() {
     val state = LocalPlayerState.current
     val actions = LocalPlayerActions.current
     val favorites = LocalFavorites.current
+    val navigate = LocalNavigate.current
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -90,7 +92,7 @@ fun PlayerScreenAndroid() {
             onShuffleToggle = { actions.toggleShuffle() },
             onRepeatToggle = { actions.toggleRepeat() },
             onLyricsClick = { },
-            onCurrentSongClick = { },
+            onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
         )
     }
 }

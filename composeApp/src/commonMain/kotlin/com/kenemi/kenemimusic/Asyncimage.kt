@@ -114,3 +114,15 @@ private fun blurSkiaImage(bytes: ByteArray, radius: Float): ImageBitmap {
     surface.canvas.drawImage(source, 0f, 0f, paint)
     return surface.makeImageSnapshot().toComposeImageBitmap()
 }
+
+// =====================================================
+// NETTOYAGE DU CACHE
+// =====================================================
+
+fun clearAsyncImageCache() {
+    bytesCache.clear()
+    imageCache.clear()
+    blurCache.clear()
+}
+
+fun getImageCacheSize(): Int = bytesCache.size

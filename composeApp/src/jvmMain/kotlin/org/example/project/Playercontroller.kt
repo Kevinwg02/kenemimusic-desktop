@@ -86,9 +86,10 @@ class PlayerController(
 
     private fun recordCurrentPlay() {
         val song = state.currentSong ?: return
+        if (playStartMs == 0L) return  // pas de lecture en cours, rien à enregistrer
         val elapsed = System.currentTimeMillis() - playStartMs
-        // Enregistrer seulement si écouté au moins 10 secondes
-        if (elapsed >= 10_000L) {
+        // Enregistrer seulement si écouté entre 10s et 2h (sanity check)
+        if (elapsed in 10_000L..7_200_000L) {
             ListeningStats.recordPlay(song.id, elapsed)
         }
         playStartMs = 0L

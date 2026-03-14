@@ -167,6 +167,97 @@ fun SettingsScreen(
                 )
             }
         }
+
+        SettingsSectionTitle("Cache")
+
+        var imageCacheCleared by remember { mutableStateOf(false) }
+        var lyricsCacheCleared by remember { mutableStateOf(false) }
+
+        SettingsCard {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Cache images
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Cache images", fontSize = 14.sp,
+                            fontWeight = FontWeight.W500,
+                            color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            text = if (imageCacheCleared) "Cache vidé ✓"
+                            else "Photos artistes et pochettes albums",
+                            fontSize = 12.sp,
+                            color = if (imageCacheCleared) KenemiColors.Success
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            clearImageMemoryCache()
+                            imageCacheCleared = true
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                    ) { Text("Vider", fontSize = 13.sp) }
+                }
+
+                Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)))
+
+                // Cache paroles
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Cache paroles", fontSize = 14.sp,
+                            fontWeight = FontWeight.W500,
+                            color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            text = if (lyricsCacheCleared) "Cache vidé ✓"
+                            else "Paroles chargées depuis LrcLib / Lyrics.ovh",
+                            fontSize = 12.sp,
+                            color = if (lyricsCacheCleared) KenemiColors.Success
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            LyricsService.clearCache()
+                            lyricsCacheCleared = true
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                    ) { Text("Vider", fontSize = 13.sp) }
+                }
+
+                Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)))
+
+                // Tout vider
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            clearImageMemoryCache()
+                            LyricsService.clearCache()
+                            imageCacheCleared = true
+                            lyricsCacheCleared = true
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error),
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.error)
+                    ) { Text("Tout vider", fontSize = 13.sp) }
+                }
+            }
+        }
     }
 }
 
@@ -203,3 +294,5 @@ expect fun saveFavorites(ids: Set<Long>)
 expect fun savePlaylists(playlists: List<Playlist>)
 
 expect fun loadStats(): List<PlayEventData>
+
+expect fun clearImageMemoryCache()

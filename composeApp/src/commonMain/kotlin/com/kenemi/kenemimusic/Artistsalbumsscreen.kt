@@ -2,6 +2,7 @@ package com.kenemi.kenemimusic
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,9 +16,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-
-
 
 // =====================================================
 // ÉCRAN ARTISTES
@@ -37,18 +35,26 @@ fun ArtistsScreen(onArtistClick: (String) -> Unit = {}) {
         ScreenHeader(title = "Artistes", count = "${artists.size} artistes")
 
         // Grille
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(5),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            items(artists) { artist ->
-                ArtistBubble(
-                    artist = artist,
-                    onClick = { onArtistClick(artist.name) }
-                )
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val columns = when {
+                maxWidth < 500.dp -> 2
+                maxWidth < 700.dp -> 3
+                maxWidth < 900.dp -> 4
+                else -> 5
+            }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                items(artists) { artist ->
+                    ArtistBubble(
+                        artist = artist,
+                        onClick = { onArtistClick(artist.name) }
+                    )
+                }
             }
         }
     }
@@ -159,7 +165,7 @@ fun AlbumsScreen(onAlbumClick: (Long) -> Unit = {}) {
         ScreenHeader(title = "Albums", count = "${albums.size} albums")
 
         LazyVerticalGrid(
-            columns = GridCells.Fixed(6),
+            columns = GridCells.Fixed(4),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -217,7 +223,7 @@ fun AlbumCard(
         ) {
             Text(
                 text = album.name,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.W500,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
@@ -225,7 +231,7 @@ fun AlbumCard(
             )
             Text(
                 text = album.artist,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

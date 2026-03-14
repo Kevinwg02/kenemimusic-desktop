@@ -55,7 +55,7 @@ fun StatsScreen() {
             stats.topSongs.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("", fontSize = 40.sp)
+                    Text("📊", fontSize = 40.sp)
                     Text("Pas encore de statistiques", fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Écoute de la musique pour voir tes stats !",
@@ -96,8 +96,8 @@ fun StatsScreen() {
                     // ── Temps moyen par chanson ──
                     if (stats.topSongs.isNotEmpty()) {
                         StatsSection(title = "⏱ Moyenne par écoute") {
-                            val avg = stats.totalListeningMs /
-                                    stats.topSongs.sumOf { it.playCount }.coerceAtLeast(1)
+                            val totalPlays = stats.topSongs.sumOf { it.playCount }
+                            val avg = if (totalPlays > 0) stats.totalListeningMs / totalPlays else 0L
                             StatCard {
                                 Row(modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,

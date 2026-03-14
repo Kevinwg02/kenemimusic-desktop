@@ -39,6 +39,12 @@ data class LrcLibResponse(
 
 object LyricsService {
 
+    private val lyricsCache = mutableMapOf<String, LyricsResult?>()
+
+    fun clearCache() {
+        lyricsCache.clear()
+    }
+
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
@@ -46,15 +52,12 @@ object LyricsService {
     }
 
     suspend fun getLyrics(title: String, artist: String, duration: Long? = null): LyricsResult? {
-        // 1. Essayer LrcLib
-        val lrcLib = tryLrcLib(title, artist, duration)
-        if (lrcLib != null) return lrcLib
+        val key = "$artist|$title"
+        lyricsCache[key]?.let { return it }
 
-        // 2. Fallback : Lyrics.ovh
-        val ovh = tryLyricsOvh(title, artist)
-        if (ovh != null) return ovh
-
-        return null
+        val result = tryLrcLib(title, artist, duration)
+        lyricsCache[key] = result
+        return result
     }
 
     // ──────────────────────────────────────────

@@ -1,5 +1,7 @@
 package com.kenemi.kenemimusic
 
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -8,6 +10,7 @@ import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+//import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.res.painterResource
 
 fun main() = application {
@@ -34,6 +37,10 @@ fun main() = application {
         }
     }
 
+    val windowState = rememberWindowState(size = DpSize(1100.dp, 700.dp))
+    val minWidth = 420.dp
+    val minHeight = 500.dp
+
     Window(
         onCloseRequest = {
             playerController.release()
@@ -42,9 +49,16 @@ fun main() = application {
             exitApplication()
         },
         title = "Kenemi Music",
-        state = rememberWindowState(size = DpSize(1100.dp, 700.dp)),
+        state = windowState,
         icon = painterResource("KM-icon.ico")
     ) {
+        val density = LocalDensity.current
+        SideEffect {
+            window.minimumSize = with(density) {
+                java.awt.Dimension(minWidth.toPx().toInt(), minHeight.toPx().toInt())
+            }
+        }
+
         App(
             isDesktop = true,
             library = library,

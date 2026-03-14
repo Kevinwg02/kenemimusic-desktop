@@ -30,3 +30,7 @@ actual fun loadStats(): List<PlayEventData> {
         PlayEventData(it.songId, it.durationMs, it.timestamp)
     }
 }
+
+actual fun clearImageMemoryCache() {
+    clearAsyncImageCache()
+}

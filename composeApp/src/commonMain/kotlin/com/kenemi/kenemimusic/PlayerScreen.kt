@@ -27,30 +27,16 @@ fun PlayerScreenDesktop() {
     val favorites = LocalFavorites.current
     val navigate = LocalNavigate.current
     var showLyrics by remember { mutableStateOf(false) }
-    var coverUrl by remember(state.currentSong?.id) { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(state.currentSong?.id) {
-        val song = state.currentSong ?: return@LaunchedEffect
-        coverUrl = ImageService.getAlbumCoverUrl(song.album, song.artist)
-    }
 
     if (showLyrics) {
         LyricsDialog(onDismiss = { showLyrics = false })
     }
 
     Row(modifier = Modifier.fillMaxSize()) {
-        // Panneau gauche avec fond flouté
+        // Panneau player
         Box(modifier = Modifier.width(340.dp).fillMaxHeight()) {
-            // Image de fond floutée
-            BlurredAsyncImage(
-                url = coverUrl,
-                modifier = Modifier.fillMaxSize(),
-                blurRadius = 40f,
-            )
-            // Overlay sombre pour lisibilité
             Box(modifier = Modifier.fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)))
-
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)))
             Column(
                 modifier = Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -74,14 +60,21 @@ fun PlayerScreenDesktop() {
                     onLyricsClick = { showLyrics = true },
                     onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
                 )
-            } // Column
-        } // Box fond flouté
+            }
+        }
+
         Box(modifier = Modifier.fillMaxHeight().width(0.5.dp)
-            .background(MaterialTheme.colorScheme.outline))
-        SongListPanel(onSongClick = { song ->
-            actions.playAll(library.songs,
-                library.songs.indexOfFirst { it.id == song.id }.coerceAtLeast(0))
-        })
+            .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)))
+
+        // Liste chansons
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.4f)))
+            SongListPanel(onSongClick = { song ->
+                actions.playAll(library.songs,
+                    library.songs.indexOfFirst { it.id == song.id }.coerceAtLeast(0))
+            })
+        }
     }
 }
 
@@ -295,9 +288,14 @@ fun PlayerControls(isPlaying: Boolean, isShuffle: Boolean, isRepeat: Boolean,
 fun SongListPanel(onSongClick: (Song) -> Unit = {}) {
     val library = LocalMusicLibrary.current
     val playerState = LocalPlayerState.current
+    val isPlayerBg = LocalPlayerBackground.current
+    val bgColor = if (isPlayerBg) MaterialTheme.colorScheme.background.copy(alpha = 0.35f)
+    else MaterialTheme.colorScheme.background
+    val surfaceColor = if (isPlayerBg) MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
+    else MaterialTheme.colorScheme.surface
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
+    Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
+        Row(modifier = Modifier.fillMaxWidth().background(Color.Transparent)
             .padding(horizontal = 20.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
@@ -337,9 +335,12 @@ fun SongListPanel(onSongClick: (Song) -> Unit = {}) {
 
 @Composable
 fun SongRow(index: Int, song: Song, isPlaying: Boolean, onClick: () -> Unit) {
+    val isPlayerBg = LocalPlayerBackground.current
+    val playingBg = if (isPlayerBg) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+    else MaterialTheme.colorScheme.surfaceVariant
     Row(
         modifier = Modifier.fillMaxWidth().clickable { onClick() }
-            .background(if (isPlaying) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
+            .background(if (isPlaying) playingBg else Color.Transparent)
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)

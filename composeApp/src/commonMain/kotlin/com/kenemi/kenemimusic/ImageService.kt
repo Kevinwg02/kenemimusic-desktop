@@ -73,8 +73,9 @@ object ImageService {
         artistImageCache[artistName]?.let { return it }
 
         val result = try {
+            val cleanName = cleanArtistName(artistName)
             val response: DeezerArtistSearch = client
-                .get("https://api.deezer.com/search/artist?q=${artistName.encodeUrl()}&limit=1")
+                .get("https://api.deezer.com/search/artist?q=${cleanName.encodeUrl()}&limit=1")
                 .body()
             response.data.firstOrNull()?.picture_big?.ifBlank { null }
         } catch (e: Exception) {
@@ -94,12 +95,13 @@ object ImageService {
 
         // 1. Chercher la pochette de l'album
         val albumResult = try {
-            val query = "${albumName.encodeUrl()} ${artistName.encodeUrl()}"
+            val cleanArtist = cleanArtistName(artistName)
+            val query = "${albumName.encodeUrl()} ${cleanArtist.encodeUrl()}"
             val response: DeezerAlbumSearch = client
                 .get("https://api.deezer.com/search/album?q=$query&limit=5")
                 .body()
             val best = response.data.firstOrNull { album ->
-                album.artist.name.equals(artistName, ignoreCase = true) ||
+                album.artist.name.equals(cleanArtist, ignoreCase = true) ||
                         album.title.equals(albumName, ignoreCase = true)
             } ?: response.data.firstOrNull()
             best?.cover_big?.ifBlank { null }
@@ -110,6 +112,17 @@ object ImageService {
 
         albumCoverCache[key] = result
         return result
+    }
+
+    // Prend uniquement le premier artiste (avant feat., &, x, etc.)
+    private fun cleanArtistName(artist: String): String {
+        val separators = listOf(" feat. ", " feat ", " ft. ", " ft ",
+            " featuring ", " & ", " x ", " X ", " vs. ", " vs ", " with ", " / ")
+        var clean = artist
+        for (sep in separators) {
+            clean = clean.substringBefore(sep)
+        }
+        return clean.trim()
     }
 
     private fun String.encodeUrl() = java.net.URLEncoder.encode(this, "UTF-8")

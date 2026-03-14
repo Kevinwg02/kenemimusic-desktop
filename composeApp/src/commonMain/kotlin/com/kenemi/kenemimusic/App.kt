@@ -1,6 +1,7 @@
 package com.kenemi.kenemimusic
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -11,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 interface PlayerActions {
     fun play(song: Song)
@@ -24,6 +27,7 @@ interface PlayerActions {
 }
 
 val LocalNavigate = staticCompositionLocalOf<(Screen) -> Unit> { {} }
+val LocalPlayerBackground = staticCompositionLocalOf { false }
 
 val LocalPlayerActions = staticCompositionLocalOf<PlayerActions> {
     object : PlayerActions {
@@ -61,6 +65,7 @@ fun App(
         LocalPlaylists provides playlistsState,
         LocalStats provides statsState,
         LocalNavigate provides { currentScreen = it },
+        LocalPlayerBackground provides (currentScreen is Screen.PLAYER),
     ) {
         KenemiMusicTheme(darkTheme = isDarkTheme) {
             if (isDesktop) {
@@ -94,11 +99,74 @@ fun ScreenContent(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
 @Composable
 fun DesktopLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
                   isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
-    Row(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Sidebar(currentScreen = currentScreen, onScreenChange = onScreenChange)
-        Box(modifier = Modifier.fillMaxHeight().width(0.5.dp).background(MaterialTheme.colorScheme.outline))
-        Box(modifier = Modifier.fillMaxSize()) {
-            ScreenContent(currentScreen, onScreenChange, isDarkTheme, onThemeToggle, isDesktop = true)
+    val playerState = LocalPlayerState.current
+    val isPlayerScreen = currentScreen is Screen.PLAYER
+
+    // Récupérer la coverUrl pour le fond flouté
+    var coverUrl by remember(playerState.currentSong?.id) { mutableStateOf<String?>(null) }
+    LaunchedEffect(playerState.currentSong?.id) {
+        val song = playerState.currentSong ?: return@LaunchedEffect
+        coverUrl = ImageService.getAlbumCoverUrl(song.album, song.artist)
+    }
+
+    val isTransparent = isPlayerScreen && coverUrl != null
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isCompact = maxWidth < 800.dp
+        val sidebarWidth = if (isCompact) 56.dp else 200.dp
+
+        // ── Fond ──
+        if (isTransparent) {
+            BlurredAsyncImage(url = coverUrl, modifier = Modifier.fillMaxSize(), blurRadius = 50f)
+            Box(modifier = Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.72f)))
+        } else {
+            Box(modifier = Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.background))
+        }
+
+        // ── Layout ──
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(modifier = Modifier.weight(1f)) {
+
+                // Sidebar — compacte (icônes) ou complète
+                Box(
+                    modifier = Modifier.width(sidebarWidth).fillMaxHeight()
+                        .background(
+                            if (isTransparent) MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)
+                            else MaterialTheme.colorScheme.surface
+                        )
+                ) {
+                    if (isCompact) {
+                        SidebarCompact(
+                            currentScreen = currentScreen,
+                            onScreenChange = onScreenChange,
+                            transparent = isTransparent
+                        )
+                    } else {
+                        Sidebar(
+                            currentScreen = currentScreen,
+                            onScreenChange = onScreenChange,
+                            transparent = isTransparent
+                        )
+                    }
+                }
+
+                // Séparateur
+                Box(modifier = Modifier.width(0.5.dp).fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.outline.copy(
+                        alpha = if (isTransparent) 0.3f else 1f)))
+
+                // Contenu
+                Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    ScreenContent(currentScreen, onScreenChange, isDarkTheme, onThemeToggle, isDesktop = true)
+                }
+            }
+
+            // Mini Player
+            if (playerState.currentSong != null && !isPlayerScreen) {
+                MiniPlayer(onPlayerClick = { onScreenChange(Screen.PLAYER) })
+            }
         }
     }
 }
@@ -106,16 +174,23 @@ fun DesktopLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
 @Composable
 fun AndroidLayout(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
                   isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
+    val playerState = LocalPlayerState.current
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Box(modifier = Modifier.weight(1f)) {
             ScreenContent(currentScreen, onScreenChange, isDarkTheme, onThemeToggle, isDesktop = false)
+        }
+        // Mini player au dessus de la bottom nav (sauf sur l'écran lecteur)
+        if (playerState.currentSong != null && currentScreen !is Screen.PLAYER) {
+            MiniPlayer(onPlayerClick = { onScreenChange(Screen.PLAYER) })
         }
         BottomNavBar(currentScreen = currentScreen, onScreenChange = onScreenChange)
     }
 }
 
 @Composable
-fun Sidebar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
+fun Sidebar(currentScreen: Screen, onScreenChange: (Screen) -> Unit, transparent: Boolean = false) {
+    val selectedBg = if (transparent) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+    else MaterialTheme.colorScheme.surfaceVariant
     val activeScreen = when (currentScreen) {
         is Screen.ARTIST_DETAIL   -> Screen.ARTISTS
         is Screen.ALBUM_DETAIL    -> Screen.ALBUMS
@@ -130,7 +205,7 @@ fun Sidebar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
         navigationItems.filter { it.screen !is Screen.SETTINGS }.forEach { item ->
             SidebarItem(item = item, isSelected = activeScreen == item.screen,
-                onClick = { onScreenChange(item.screen) })
+                onClick = { onScreenChange(item.screen) }, selectedBg = selectedBg)
         }
         Spacer(modifier = Modifier.weight(1f))
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
@@ -138,13 +213,71 @@ fun Sidebar(currentScreen: Screen, onScreenChange: (Screen) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
         SidebarItem(item = NavItem(Screen.SETTINGS, "Paramètres", NavIcon.SETTINGS),
             isSelected = currentScreen is Screen.SETTINGS,
-            onClick = { onScreenChange(Screen.SETTINGS) })
+            onClick = { onScreenChange(Screen.SETTINGS) }, selectedBg = selectedBg)
     }
 }
 
 @Composable
-fun SidebarItem(item: NavItem, isSelected: Boolean, onClick: () -> Unit) {
-    val bgColor = if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
+fun SidebarCompact(currentScreen: Screen, onScreenChange: (Screen) -> Unit, transparent: Boolean = false) {
+    val activeScreen = when (currentScreen) {
+        is Screen.ARTIST_DETAIL   -> Screen.ARTISTS
+        is Screen.ALBUM_DETAIL    -> Screen.ALBUMS
+        is Screen.PLAYLIST_DETAIL -> Screen.PLAYLISTS
+        else -> currentScreen
+    }
+    val selectedBg = if (transparent) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+    else MaterialTheme.colorScheme.surfaceVariant
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Logo KM compact
+        Text("KM", fontSize = 10.sp, fontWeight = FontWeight.W700,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 16.dp))
+
+        navigationItems.filter { it.screen !is Screen.SETTINGS }.forEach { item ->
+            val isSelected = activeScreen == item.screen
+            Box(
+                modifier = Modifier.size(40.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
+                    .background(if (isSelected) selectedBg else Color.Transparent)
+                    .clickable { onScreenChange(item.screen) },
+                contentAlignment = Alignment.Center
+            ) {
+                NavIconComposable(
+                    icon = item.icon,
+                    tint = if (isSelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+            .height(0.5.dp).background(MaterialTheme.colorScheme.outline))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Box(
+            modifier = Modifier.size(40.dp)
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
+                .background(if (currentScreen is Screen.SETTINGS) selectedBg else Color.Transparent)
+                .clickable { onScreenChange(Screen.SETTINGS) },
+            contentAlignment = Alignment.Center
+        ) {
+            NavIconComposable(icon = NavIcon.SETTINGS,
+                tint = if (currentScreen is Screen.SETTINGS) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+fun SidebarItem(item: NavItem, isSelected: Boolean, onClick: () -> Unit, selectedBg: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceVariant) {
+    val bgColor = if (isSelected) selectedBg else Color.Transparent
     val textColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
     Row(modifier = Modifier.fillMaxWidth().clickable { onClick() }
         .background(bgColor).padding(horizontal = 16.dp, vertical = 10.dp),

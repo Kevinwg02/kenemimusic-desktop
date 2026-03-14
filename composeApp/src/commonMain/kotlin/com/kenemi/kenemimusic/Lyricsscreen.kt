@@ -141,14 +141,13 @@ fun LyricsContent(song: Song, playerState: PlayerStateHolder, onDismiss: () -> U
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            error != null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("🎵", fontSize = 32.sp)
-                    Text(error!!, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center)
+            error != null -> NotFoundView(
+                song = song,
+                onManualLyrics = { manual ->
+                    lyricsResult = LyricsResult(plain = manual, source = "Manuel")
+                    error = null
                 }
-            }
+            )
             lyricsResult != null -> {
                 val result = lyricsResult!!
                 if (isSyncedMode && result.synced != null) {
@@ -234,4 +233,75 @@ fun PlainLyricsView(text: String) {
             lineHeight = 26.sp
         )
     }
+}
+
+
+// =====================================================
+// VUE "PAROLES INTROUVABLES" avec saisie manuelle
+// =====================================================
+
+@Composable
+fun NotFoundView(song: Song, onManualLyrics: (String) -> Unit) {
+    var showEditor by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("🎵", fontSize = 32.sp)
+            Text("Paroles introuvables", fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${song.title} — ${song.artist}", fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedButton(
+                onClick = { showEditor = true },
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary),
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Saisir les paroles manuellement", fontSize = 13.sp)
+            }
+        }
+    }
+
+    if (showEditor) {
+        ManualLyricsDialog(
+            onConfirm = { onManualLyrics(it); showEditor = false },
+            onDismiss = { showEditor = false }
+        )
+    }
+}
+
+@Composable
+fun ManualLyricsDialog(onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var text by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Saisir les paroles") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Collez ou tapez les paroles ci-dessous :",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp, max = 300.dp),
+                    placeholder = { Text("Paroles de la chanson...") },
+                    maxLines = 20,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (text.isNotBlank()) onConfirm(text) },
+                enabled = text.isNotBlank()
+            ) { Text("Confirmer") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annuler") }
+        }
+    )
 }

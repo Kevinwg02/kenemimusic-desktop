@@ -35,14 +35,14 @@ fun StatsScreen() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Statistiques", fontSize = 14.sp, fontWeight = FontWeight.W500,
-                color = MaterialTheme.colorScheme.onSurface)
-            if (stats.totalListeningMs > 0) {
-                Text(
-                    text = "Total : ${formatListeningTime(stats.totalListeningMs)}",
-                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+//            Text("Statistiques", fontSize = 14.sp, fontWeight = FontWeight.W500,
+//                color = MaterialTheme.colorScheme.onSurface)
+//            if (stats.totalListeningMs > 0) {
+//                Text(
+//                    text = "Total : ${formatListeningTime(stats.totalListeningMs)}",
+//                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+//                )
+//            }
         }
 
         Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
@@ -97,20 +97,20 @@ fun StatsScreen() {
                     if (stats.topSongs.isNotEmpty()) {
                         StatsSection(title = "⏱ Moyenne par écoute") {
                             val totalPlays = stats.topSongs.sumOf { it.playCount }
-                            val avg = if (totalPlays > 0) stats.totalListeningMs / totalPlays else 0L
-                            StatCard {
-                                Row(modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Durée moyenne d'écoute",
-                                        fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.onSurface)
-                                    Text(formatDuration(avg),
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.W600,
-                                        color = MaterialTheme.colorScheme.primary)
-                                }
-                            }
+//                            val avg = if (totalPlays > 0) stats.totalListeningMs / totalPlays else 0L
+//                            StatCard {
+//                                Row(modifier = Modifier.fillMaxWidth(),
+//                                    horizontalArrangement = Arrangement.SpaceBetween,
+//                                    verticalAlignment = Alignment.CenterVertically) {
+//                                    Text("Durée moyenne d'écoute",
+//                                        fontSize = 13.sp,
+//                                        color = MaterialTheme.colorScheme.onSurface)
+//                                    Text(formatDuration(avg),
+//                                        fontSize = 18.sp,
+//                                        fontWeight = FontWeight.W600,
+//                                        color = MaterialTheme.colorScheme.primary)
+//                                }
+//                            }
                             Spacer(modifier = Modifier.height(8.dp))
                             StatCard {
                                 Row(modifier = Modifier.fillMaxWidth(),

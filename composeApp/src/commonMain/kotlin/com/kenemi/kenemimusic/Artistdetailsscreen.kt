@@ -17,6 +17,11 @@ fun ArtistDetailScreen(artistName: String, onBack: () -> Unit) {
     val library = LocalMusicLibrary.current
     val actions = LocalPlayerActions.current
 
+    var artistImageUrl by remember(artistName) { mutableStateOf<String?>(null) }
+    LaunchedEffect(artistName) {
+        artistImageUrl = ImageService.getArtistImageUrl(artistName)
+    }
+
     val artistSongs = remember(artistName, library.songs) {
         library.songs.filter { song ->
             parseArtists(song.artist).any { it.equals(artistName, ignoreCase = true) }
@@ -46,7 +51,11 @@ fun ArtistDetailScreen(artistName: String, onBack: () -> Unit) {
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
-                ArtistInitials(name = artistName)
+                AsyncImage(
+                    url = artistImageUrl,
+                    modifier = Modifier.fillMaxSize(),
+                    placeholder = { ArtistInitials(name = artistName) }
+                )
             }
             Column {
                 Text(text = artistName, fontSize = 16.sp, fontWeight = FontWeight.W500,

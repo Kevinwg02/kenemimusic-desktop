@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 kotlin {
@@ -34,6 +35,12 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
             implementation("sh.calvin.reorderable:reorderable:2.4.0")
+            // lyrics
+            implementation("io.ktor:ktor-client-core:2.3.7")
+            implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -44,6 +51,8 @@ kotlin {
             implementation("uk.co.caprica:vlcj:4.8.2")
             //drag & drop
             implementation("sh.calvin.reorderable:reorderable:2.4.0")
+            //lyrics
+            implementation("io.ktor:ktor-client-okhttp:2.3.7")
         }
     }
 }

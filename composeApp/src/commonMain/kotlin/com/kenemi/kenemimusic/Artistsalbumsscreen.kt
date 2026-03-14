@@ -18,6 +18,35 @@ import androidx.compose.ui.unit.sp
 
 
 
+// Données fictives pour tester
+val fakeArtists = (1..24).map { i ->
+    Artist(
+        id = i.toLong(),
+        name = listOf(
+            "Daft Punk", "Stromae", "PNL", "Nekfeu", "Orelsan",
+            "Booba", "Jul", "Damso", "SCH", "Hamza",
+            "Laylow", "Lomepal", "Angèle", "Clara Luciani", "Aya Nakamura",
+            "Vald", "Ninho", "Freeze Corleone", "Sofiane", "Kaaris",
+            "Gims", "Maes", "Naza", "Soolking"
+        )[i - 1],
+        songCount = (5..40).random()
+    )
+}
+
+val fakeAlbums = (1..20).map { i ->
+    Album(
+        id = i.toLong(),
+        name = listOf(
+            "Random Access Memories", "Racine Carrée", "Dans la légende", "Cyborg",
+            "Enfant Sauvage", "ULTRA", "Mon roi", "Lithopédion", "Rooftop", "Hamza",
+            "Trinity", "Flip", "Nonante-Cinq", "Cœur", "Nakamura",
+            "NQNT2", "M.I.L.S 3.0", "Le Monde Chico", "Trône", "Bilal Hassani"
+        )[i - 1],
+        artist = fakeArtists[(i - 1) % fakeArtists.size].name,
+        year = (2015..2024).random(),
+        songCount = (8..16).random()
+    )
+}
 
 // =====================================================
 // ÉCRAN ARTISTES
@@ -59,6 +88,12 @@ fun ArtistBubble(
     artist: Artist,
     onClick: () -> Unit
 ) {
+    var imageUrl by remember(artist.name) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(artist.name) {
+        imageUrl = ImageService.getArtistImageUrl(artist.name)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,7 +101,6 @@ fun ArtistBubble(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Bulle (cercle)
         Box(
             modifier = Modifier
                 .aspectRatio(1f)
@@ -74,12 +108,11 @@ fun ArtistBubble(
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            if (artist.imageUrl != null) {
-                // TODO: AsyncImage quand on branche les vraies données
-                ArtistInitials(name = artist.name)
-            } else {
-                ArtistInitials(name = artist.name)
-            }
+            AsyncImage(
+                url = imageUrl,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = { ArtistInitials(name = artist.name) }
+            )
         }
 
         // Nom de l'artiste
@@ -188,6 +221,10 @@ fun AlbumRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // Pochette carrée coins arrondis
+        var coverUrl by remember(album.id) { mutableStateOf<String?>(null) }
+        LaunchedEffect(album.id) {
+            coverUrl = ImageService.getAlbumCoverUrl(album.name, album.artist)
+        }
         Box(
             modifier = Modifier
                 .size(56.dp)
@@ -195,12 +232,11 @@ fun AlbumRow(
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            if (album.coverUrl != null) {
-                // TODO: AsyncImage
-                AlbumCoverPlaceholder(album = album)
-            } else {
-                AlbumCoverPlaceholder(album = album)
-            }
+            AsyncImage(
+                url = coverUrl,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = { AlbumCoverPlaceholder(album = album) }
+            )
         }
 
         // Infos à droite

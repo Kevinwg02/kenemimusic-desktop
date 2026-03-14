@@ -26,6 +26,11 @@ fun PlayerScreenDesktop() {
     val library = LocalMusicLibrary.current
     val favorites = LocalFavorites.current
     val navigate = LocalNavigate.current
+    var showLyrics by remember { mutableStateOf(false) }
+
+    if (showLyrics) {
+        LyricsDialog(onDismiss = { showLyrics = false })
+    }
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -49,7 +54,7 @@ fun PlayerScreenDesktop() {
                 },
                 onShuffleToggle = { actions.toggleShuffle() },
                 onRepeatToggle = { actions.toggleRepeat() },
-                onLyricsClick = { },
+                onLyricsClick = { showLyrics = true },
                 onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
             )
         }
@@ -68,6 +73,11 @@ fun PlayerScreenAndroid() {
     val actions = LocalPlayerActions.current
     val favorites = LocalFavorites.current
     val navigate = LocalNavigate.current
+    var showLyrics by remember { mutableStateOf(false) }
+
+    if (showLyrics) {
+        LyricsDialog(onDismiss = { showLyrics = false })
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -91,7 +101,7 @@ fun PlayerScreenAndroid() {
             },
             onShuffleToggle = { actions.toggleShuffle() },
             onRepeatToggle = { actions.toggleRepeat() },
-            onLyricsClick = { },
+            onLyricsClick = { showLyrics = true },
             onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
         )
     }
@@ -149,13 +159,25 @@ fun ArtistImage(imageUrl: String?, size: Dp, isPlaying: Boolean) {
         animationSpec = infiniteRepeatable(animation = tween(20000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart), label = "rotation"
     )
+    val state = LocalPlayerState.current
+    var coverUrl by remember(state.currentSong?.id) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(state.currentSong?.id) {
+        val song = state.currentSong ?: return@LaunchedEffect
+        coverUrl = ImageService.getAlbumCoverUrl(song.album, song.artist)
+    }
+
     Box(
         modifier = Modifier.size(size).clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .then(if (isPlaying) Modifier.rotate(rotation) else Modifier),
         contentAlignment = Alignment.Center
     ) {
-        PlaceholderArtImage(size)
+        AsyncImage(
+            url = coverUrl,
+            modifier = Modifier.fillMaxSize(),
+            placeholder = { PlaceholderArtImage(size) }
+        )
     }
 }
 

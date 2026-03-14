@@ -201,3 +201,5 @@ expect fun saveMusicFolder(path: String)
 expect fun saveFavorites(ids: Set<Long>)
 
 expect fun savePlaylists(playlists: List<Playlist>)
+
+expect fun loadStats(): List<PlayEventData>

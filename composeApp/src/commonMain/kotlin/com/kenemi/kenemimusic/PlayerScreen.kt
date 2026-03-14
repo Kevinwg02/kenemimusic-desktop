@@ -27,37 +27,55 @@ fun PlayerScreenDesktop() {
     val favorites = LocalFavorites.current
     val navigate = LocalNavigate.current
     var showLyrics by remember { mutableStateOf(false) }
+    var coverUrl by remember(state.currentSong?.id) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(state.currentSong?.id) {
+        val song = state.currentSong ?: return@LaunchedEffect
+        coverUrl = ImageService.getAlbumCoverUrl(song.album, song.artist)
+    }
 
     if (showLyrics) {
         LyricsDialog(onDismiss = { showLyrics = false })
     }
 
     Row(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.width(340.dp).fillMaxHeight()
-                .background(MaterialTheme.colorScheme.surface).padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            PlayerContent(
-                state = state.toPlayerState(),
-                isFavorite = state.currentSong?.id?.let { favorites.isFavorite(it) } ?: false,
-                onPlayPause = { actions.togglePlayPause() },
-                onNext = { actions.next() },
-                onPrevious = { actions.previous() },
-                onSeek = { actions.seekTo(it) },
-                onFavoriteToggle = {
-                    state.currentSong?.id?.let { id ->
-                        favorites.toggle(id)
-                        saveFavorites(favorites.favoriteIds)
-                    }
-                },
-                onShuffleToggle = { actions.toggleShuffle() },
-                onRepeatToggle = { actions.toggleRepeat() },
-                onLyricsClick = { showLyrics = true },
-                onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
+        // Panneau gauche avec fond flouté
+        Box(modifier = Modifier.width(340.dp).fillMaxHeight()) {
+            // Image de fond floutée
+            BlurredAsyncImage(
+                url = coverUrl,
+                modifier = Modifier.fillMaxSize(),
+                blurRadius = 40f,
             )
-        }
+            // Overlay sombre pour lisibilité
+            Box(modifier = Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)))
+
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                PlayerContent(
+                    state = state.toPlayerState(),
+                    isFavorite = state.currentSong?.id?.let { favorites.isFavorite(it) } ?: false,
+                    onPlayPause = { actions.togglePlayPause() },
+                    onNext = { actions.next() },
+                    onPrevious = { actions.previous() },
+                    onSeek = { actions.seekTo(it) },
+                    onFavoriteToggle = {
+                        state.currentSong?.id?.let { id ->
+                            favorites.toggle(id)
+                            saveFavorites(favorites.favoriteIds)
+                        }
+                    },
+                    onShuffleToggle = { actions.toggleShuffle() },
+                    onRepeatToggle = { actions.toggleRepeat() },
+                    onLyricsClick = { showLyrics = true },
+                    onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
+                )
+            } // Column
+        } // Box fond flouté
         Box(modifier = Modifier.fillMaxHeight().width(0.5.dp)
             .background(MaterialTheme.colorScheme.outline))
         SongListPanel(onSongClick = { song ->

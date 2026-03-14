@@ -8,6 +8,7 @@ import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.painterResource
 
 fun main() = application {
     val library = MusicLibrary()
@@ -16,6 +17,7 @@ fun main() = application {
     val playerController = PlayerController(musicPlayer, playerState)
     val favoritesState = FavoritesState().also { it.favoriteIds = FavoritesManager.load() }
     val playlistsState = PlaylistsState().also { it.playlists = PlaylistsManager.load() }
+    val statsState = StatsState()
 
     val savedFolder = SettingsManager.musicFolder
     if (savedFolder.isNotBlank()) {
@@ -41,6 +43,7 @@ fun main() = application {
         },
         title = "Kenemi Music",
         state = rememberWindowState(size = DpSize(1100.dp, 700.dp)),
+        icon = painterResource("KM-icon.ico")
     ) {
         App(
             isDesktop = true,
@@ -49,6 +52,7 @@ fun main() = application {
             playerController = playerController,
             favoritesState = favoritesState,
             playlistsState = playlistsState,
+            statsState = statsState,
             initialDarkTheme = SettingsManager.isDarkTheme
         )
     }

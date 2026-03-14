@@ -46,6 +46,7 @@ fun App(
     playerController: PlayerActions? = null,
     favoritesState: FavoritesState = remember { FavoritesState() },
     playlistsState: PlaylistsState = remember { PlaylistsState() },
+    statsState: StatsState = remember { StatsState() },
     initialDarkTheme: Boolean = true
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.PLAYER) }
@@ -58,6 +59,7 @@ fun App(
         LocalPlayerActions provides actions,
         LocalFavorites provides favoritesState,
         LocalPlaylists provides playlistsState,
+        LocalStats provides statsState,
         LocalNavigate provides { currentScreen = it },
     ) {
         KenemiMusicTheme(darkTheme = isDarkTheme) {
@@ -80,7 +82,7 @@ fun ScreenContent(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
         is Screen.ALBUMS    -> AlbumsScreen(onAlbumClick = { onScreenChange(Screen.ALBUM_DETAIL(it)) })
         is Screen.FAVORITES -> FavoritesScreen()
         is Screen.PLAYLISTS -> PlaylistsScreen(onPlaylistClick = { onScreenChange(Screen.PLAYLIST_DETAIL(it)) })
-        is Screen.STATS     -> PlaceholderScreen("Statistiques")
+        is Screen.STATS     -> StatsScreen()
         is Screen.SETTINGS  -> SettingsScreen(isDarkTheme = isDarkTheme, onThemeToggle = onThemeToggle)
         is Screen.ARTIST_DETAIL   -> ArtistDetailScreen(artistName = s.artistName, onBack = { onScreenChange(Screen.ARTISTS) })
         is Screen.ALBUM_DETAIL    -> AlbumDetailScreen(albumId = s.albumId, onBack = { onScreenChange(Screen.ALBUMS) })

@@ -7,26 +7,32 @@ class PlayerController(
     private val state: PlayerStateHolder
 ) : PlayerActions {
 
-    // Scope sur le thread principal (Swing EDT pour desktop)
     private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    // Timestamp de début de lecture pour calculer la durée écoutée
+    private var playStartMs: Long = 0L
 
     init {
         player.onTrackFinished = {
-            mainScope.launch { next() }
+            mainScope.launch {
+                recordCurrentPlay()
+                next()
+            }
         }
-        player.onPositionChanged = { pos ->
-            mainScope.launch { state.progress = pos }
-        }
-        player.onTimeChanged = { ms ->
-            mainScope.launch { state.currentMs = ms }
-        }
+        player.onPositionChanged = { pos -> mainScope.launch { state.progress = pos } }
+        player.onTimeChanged    = { ms  -> mainScope.launch { state.currentMs = ms  } }
     }
 
     override fun play(song: Song) {
+        // Enregistrer la chanson précédente avant de changer
+        if (state.isPlaying && state.currentSong != null) {
+            recordCurrentPlay()
+        }
         state.currentSong = song
         state.isPlaying = true
         state.progress = 0f
         state.currentMs = 0L
+        playStartMs = System.currentTimeMillis()
         player.play(song.filePath)
     }
 
@@ -38,9 +44,11 @@ class PlayerController(
 
     override fun togglePlayPause() {
         if (state.isPlaying) {
+            recordCurrentPlay()
             player.pause()
             state.isPlaying = false
         } else {
+            playStartMs = System.currentTimeMillis()
             player.resume()
             state.isPlaying = true
         }
@@ -62,10 +70,7 @@ class PlayerController(
     override fun previous() {
         val queue = state.queue
         if (queue.isEmpty()) return
-        if (state.currentMs > 3000L) {
-            seekTo(0f)
-            return
-        }
+        if (state.currentMs > 3000L) { seekTo(0f); return }
         val currentIndex = queue.indexOfFirst { it.id == state.currentSong?.id }
         val prevIndex = if (currentIndex > 0) currentIndex - 1 else queue.size - 1
         play(queue[prevIndex])
@@ -79,7 +84,18 @@ class PlayerController(
     override fun toggleShuffle() { state.isShuffle = !state.isShuffle }
     override fun toggleRepeat()  { state.isRepeat  = !state.isRepeat  }
 
+    private fun recordCurrentPlay() {
+        val song = state.currentSong ?: return
+        val elapsed = System.currentTimeMillis() - playStartMs
+        // Enregistrer seulement si écouté au moins 10 secondes
+        if (elapsed >= 10_000L) {
+            ListeningStats.recordPlay(song.id, elapsed)
+        }
+        playStartMs = 0L
+    }
+
     fun release() {
+        recordCurrentPlay()
         mainScope.cancel()
         player.release()
     }

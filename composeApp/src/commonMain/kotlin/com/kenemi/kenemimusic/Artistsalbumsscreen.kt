@@ -18,35 +18,6 @@ import androidx.compose.ui.unit.sp
 
 
 
-// Données fictives pour tester
-val fakeArtists = (1..24).map { i ->
-    Artist(
-        id = i.toLong(),
-        name = listOf(
-            "Daft Punk", "Stromae", "PNL", "Nekfeu", "Orelsan",
-            "Booba", "Jul", "Damso", "SCH", "Hamza",
-            "Laylow", "Lomepal", "Angèle", "Clara Luciani", "Aya Nakamura",
-            "Vald", "Ninho", "Freeze Corleone", "Sofiane", "Kaaris",
-            "Gims", "Maes", "Naza", "Soolking"
-        )[i - 1],
-        songCount = (5..40).random()
-    )
-}
-
-val fakeAlbums = (1..20).map { i ->
-    Album(
-        id = i.toLong(),
-        name = listOf(
-            "Random Access Memories", "Racine Carrée", "Dans la légende", "Cyborg",
-            "Enfant Sauvage", "ULTRA", "Mon roi", "Lithopédion", "Rooftop", "Hamza",
-            "Trinity", "Flip", "Nonante-Cinq", "Cœur", "Nakamura",
-            "NQNT2", "M.I.L.S 3.0", "Le Monde Chico", "Trône", "Bilal Hassani"
-        )[i - 1],
-        artist = fakeArtists[(i - 1) % fakeArtists.size].name,
-        year = (2015..2024).random(),
-        songCount = (8..16).random()
-    )
-}
 
 // =====================================================
 // ÉCRAN ARTISTES
@@ -187,16 +158,15 @@ fun AlbumsScreen(onAlbumClick: (Long) -> Unit = {}) {
     ) {
         ScreenHeader(title = "Albums", count = "${albums.size} albums")
 
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(6),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            albums.forEach { album ->
-                AlbumRow(
+            items(albums) { album ->
+                AlbumCard(
                     album = album,
                     onClick = { onAlbumClick(album.id) }
                 )
@@ -206,29 +176,30 @@ fun AlbumsScreen(onAlbumClick: (Long) -> Unit = {}) {
 }
 
 @Composable
-fun AlbumRow(
+fun AlbumCard(
     album: Album,
     onClick: () -> Unit
 ) {
-    Row(
+    var coverUrl by remember(album.id) { mutableStateOf<String?>(null) }
+    LaunchedEffect(album.id) {
+        coverUrl = ImageService.getAlbumCoverUrl(album.name, album.artist)
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .background(MaterialTheme.colorScheme.surface)
-            .padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Pochette carrée coins arrondis
-        var coverUrl by remember(album.id) { mutableStateOf<String?>(null) }
-        LaunchedEffect(album.id) {
-            coverUrl = ImageService.getAlbumCoverUrl(album.name, album.artist)
-        }
+        // Pochette grande, carrée, coins arrondis en haut
         Box(
             modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
@@ -239,14 +210,14 @@ fun AlbumRow(
             )
         }
 
-        // Infos à droite
+        // Infos sous la pochette
         Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
                 text = album.name,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.W500,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
@@ -259,36 +230,15 @@ fun AlbumRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (album.year > 0) {
-                    Text(
-                        text = "${album.year}",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = "•",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
-                Text(
-                    text = "${album.songCount} titres",
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
-            }
+            Text(
+                text = buildString {
+                    if (album.year > 0) { append(album.year); append(" • ") }
+                    append("${album.songCount} titre${if (album.songCount > 1) "s" else ""}")
+                },
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
         }
-
-        // Icône flèche
-        Icon(
-            imageVector = Icons.Next,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            modifier = Modifier.size(16.dp)
-        )
     }
 }
 

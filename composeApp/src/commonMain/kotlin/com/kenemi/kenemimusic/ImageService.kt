@@ -56,7 +56,7 @@ data class DeezerArtistRef(
 
 object ImageService {
 
-    private val client = HttpClient {
+    val client = HttpClient {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
@@ -92,22 +92,21 @@ object ImageService {
         val key = "$artistName|$albumName"
         albumCoverCache[key]?.let { return it }
 
-        val result = try {
+        // 1. Chercher la pochette de l'album
+        val albumResult = try {
             val query = "${albumName.encodeUrl()} ${artistName.encodeUrl()}"
             val response: DeezerAlbumSearch = client
                 .get("https://api.deezer.com/search/album?q=$query&limit=5")
                 .body()
-
-            // Chercher l'album qui correspond le mieux
             val best = response.data.firstOrNull { album ->
                 album.artist.name.equals(artistName, ignoreCase = true) ||
                         album.title.equals(albumName, ignoreCase = true)
             } ?: response.data.firstOrNull()
-
             best?.cover_big?.ifBlank { null }
-        } catch (e: Exception) {
-            null
-        }
+        } catch (e: Exception) { null }
+
+        // 2. Fallback : image de l'artiste si pas de pochette
+        val result = albumResult ?: getArtistImageUrl(artistName)
 
         albumCoverCache[key] = result
         return result

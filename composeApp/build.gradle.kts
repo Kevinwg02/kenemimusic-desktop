@@ -93,9 +93,23 @@ compose.desktop {
         mainClass = "com.kenemi.kenemimusic.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.kenemi.kenemimusic"
+            targetFormats(TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "KenemiMusic"
             packageVersion = "1.0.0"
+            description = "Lecteur de musique KenemiMusic"
+            copyright = "© 2025 kevinwg02"
+            vendor = "kevinwg02"
+
+            windows {
+                iconFile.set(project.file("src/jvmMain/resources/KM-icon.ico"))
+                menuGroup = "KenemiMusic"
+                perUserInstall = true
+                upgradeUuid = "GENERE-UN-UUID-SUR-uuidgenerator.net"
+            }
+            linux {
+                iconFile.set(project.file("src/jvmMain/resources/KM-icon.png"))
+                packageName = "kenemimusic"
+            }
         }
     }
 }

@@ -24,3 +24,9 @@ actual fun saveMusicFolder(path: String) { SettingsManager.musicFolder = path }
 actual fun saveFavorites(ids: Set<Long>) { FavoritesManager.save(ids) }
 
 actual fun savePlaylists(playlists: List<Playlist>) { PlaylistsManager.save(playlists) }
+
+actual fun loadStats(): List<PlayEventData> {
+    return ListeningStats.load().map {
+        PlayEventData(it.songId, it.durationMs, it.timestamp)
+    }
+}

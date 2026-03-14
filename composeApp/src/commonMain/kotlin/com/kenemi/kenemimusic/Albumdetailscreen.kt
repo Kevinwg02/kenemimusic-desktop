@@ -22,6 +22,10 @@ fun AlbumDetailScreen(albumId: Long, onBack: () -> Unit) {
     val album = remember(albumId, library.albums) {
         library.albums.firstOrNull { it.id == albumId }
     }
+    var coverUrl by remember(albumId) { mutableStateOf<String?>(null) }
+    LaunchedEffect(albumId) {
+        album?.let { coverUrl = ImageService.getAlbumCoverUrl(it.name, it.artist) }
+    }
 
     val albumSongs = remember(albumId, library.songs) {
         library.songs
@@ -55,7 +59,11 @@ fun AlbumDetailScreen(albumId: Long, onBack: () -> Unit) {
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
-                if (album != null) AlbumCoverPlaceholder(album = album)
+                AsyncImage(
+                    url = coverUrl,
+                    modifier = Modifier.fillMaxSize(),
+                    placeholder = { if (album != null) AlbumCoverPlaceholder(album = album) }
+                )
             }
 
             Column(modifier = Modifier.weight(1f)) {

@@ -127,8 +127,8 @@ fun ArtistInitials(name: String) {
     // Couleur de fond unique basée sur le nom
     val bgColor = remember(name) {
         val colors = listOf(
-            KenemiColors.Purple400,
-            KenemiColors.Purple600,
+            KenemiColors.Blue400,
+            KenemiColors.Blue600,
         )
         colors[name.length % colors.size]
     }
@@ -253,8 +253,8 @@ fun AlbumCard(
 fun AlbumCoverPlaceholder(album: Album) {
     val bgColor = remember(album.name) {
         val colors = listOf(
-            KenemiColors.Purple400,
-            KenemiColors.Purple600,
+            KenemiColors.Blue400,
+            KenemiColors.Blue600,
         )
         colors[album.name.length % colors.size]
     }

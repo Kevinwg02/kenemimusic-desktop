@@ -8,53 +8,45 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-// =====================================================
-// COULEURS CENTRALISÉES — modifier ici pour tout changer
-// =====================================================
-
 object KenemiColors {
 
-    // Accent principal (violet)
-    val Purple400    = Color(0xFF7F77DD)
-    val Purple600    = Color(0xFF534AB7)
-    val Purple200    = Color(0xFFAFA9EC)
+    // Accent principal — bleu électrique
+    val Blue400    = Color(0xFF00A2FF)  // principal
+    val Blue600    = Color(0xFF0077CC)  // foncé
+    val Blue200    = Color(0xFF66C8FF)  // clair
 
     // Backgrounds dark
-    val DarkBg       = Color(0xFF121212)  // fond principal
-    val DarkSurface  = Color(0xFF1E1E1E)  // cartes, sidebar
-    val DarkElevated = Color(0xFF2A2A2A)  // éléments surélevés
-    val DarkBorder   = Color(0xFF333333)  // bordures
+    val DarkBg       = Color(0xFF0D1117)
+    val DarkSurface  = Color(0xFF161B22)
+    val DarkElevated = Color(0xFF21262D)
+    val DarkBorder   = Color(0xFF30363D)
 
     // Backgrounds light
-    val LightBg       = Color(0xFFF5F5F5)
+    val LightBg       = Color(0xFFF4F8FC)
     val LightSurface  = Color(0xFFFFFFFF)
-    val LightElevated = Color(0xFFEEEEEE)
-    val LightBorder   = Color(0xFFDDDDDD)
+    val LightElevated = Color(0xFFE8F4FF)
+    val LightBorder   = Color(0xFFBDD8F0)
 
     // Textes dark
-    val DarkTextPrimary   = Color(0xFFFFFFFF)
-    val DarkTextSecondary = Color(0xFFAAAAAA)
-    val DarkTextTertiary  = Color(0xFF666666)
+    val DarkTextPrimary   = Color(0xFFE6EDF3)
+    val DarkTextSecondary = Color(0xFF8B949E)
+    val DarkTextTertiary  = Color(0xFF484F58)
 
     // Textes light
-    val LightTextPrimary   = Color(0xFF111111)
-    val LightTextSecondary = Color(0xFF555555)
-    val LightTextTertiary  = Color(0xFF999999)
+    val LightTextPrimary   = Color(0xFF0D1117)
+    val LightTextSecondary = Color(0xFF4A5568)
+    val LightTextTertiary  = Color(0xFF8B949E)
 
     // Sémantiques
-    val Favorite  = Color(0xFFE05C5C)  // rouge pour les favoris
-    val Success   = Color(0xFF4CAF82)  // vert
-    val Warning   = Color(0xFFEFA627)  // orange
+    val Favorite = Color(0xFFE05C5C)
+    val Success  = Color(0xFF4CAF82)
+    val Warning  = Color(0xFFEFA627)
 }
 
-// =====================================================
-// COULEURS DU SCHÉMA MATERIAL — mappage vers KenemiColors
-// =====================================================
-
 private val DarkColorScheme = darkColorScheme(
-    primary          = KenemiColors.Purple400,
+    primary          = KenemiColors.Blue400,
     onPrimary        = Color.White,
-    primaryContainer = KenemiColors.Purple600,
+    primaryContainer = KenemiColors.Blue600,
     background       = KenemiColors.DarkBg,
     surface          = KenemiColors.DarkSurface,
     surfaceVariant   = KenemiColors.DarkElevated,
@@ -62,14 +54,14 @@ private val DarkColorScheme = darkColorScheme(
     onSurface        = KenemiColors.DarkTextPrimary,
     onSurfaceVariant = KenemiColors.DarkTextSecondary,
     outline          = KenemiColors.DarkBorder,
-    secondary        = KenemiColors.Purple200,
+    secondary        = KenemiColors.Blue200,
     onSecondary      = KenemiColors.DarkBg,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary          = KenemiColors.Purple600,
+    primary          = KenemiColors.Blue600,
     onPrimary        = Color.White,
-    primaryContainer = KenemiColors.Purple200,
+    primaryContainer = KenemiColors.Blue200,
     background       = KenemiColors.LightBg,
     surface          = KenemiColors.LightSurface,
     surfaceVariant   = KenemiColors.LightElevated,
@@ -77,19 +69,11 @@ private val LightColorScheme = lightColorScheme(
     onSurface        = KenemiColors.LightTextPrimary,
     onSurfaceVariant = KenemiColors.LightTextSecondary,
     outline          = KenemiColors.LightBorder,
-    secondary        = KenemiColors.Purple400,
+    secondary        = KenemiColors.Blue400,
     onSecondary      = Color.White,
 )
 
-// =====================================================
-// COMPOSITION LOCAL pour accéder au thème partout
-// =====================================================
-
 val LocalDarkTheme = staticCompositionLocalOf { true }
-
-// =====================================================
-// COMPOSABLE PRINCIPAL DU THÈME
-// =====================================================
 
 @Composable
 fun KenemiMusicTheme(

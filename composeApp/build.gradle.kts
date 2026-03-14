@@ -93,6 +93,7 @@ compose.desktop {
         mainClass = "com.kenemi.kenemimusic.MainKt"
 
         nativeDistributions {
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             targetFormats(TargetFormat.Msi, TargetFormat.Deb)
             packageName = "KenemiMusic"
             packageVersion = "1.0.0"
@@ -104,7 +105,7 @@ compose.desktop {
                 iconFile.set(project.file("src/jvmMain/resources/KM-icon.ico"))
                 menuGroup = "KenemiMusic"
                 perUserInstall = true
-                upgradeUuid = "GENERE-UN-UUID-SUR-uuidgenerator.net"
+                upgradeUuid = "5f26f9e1-2d5a-4e62-964f-ac3f04d156f2"
             }
             linux {
                 iconFile.set(project.file("src/jvmMain/resources/KM-icon.png"))

@@ -38,5 +38,6 @@ in your IDE's toolbar or run it directly from the terminal:
   ```
 
 ---
-
-Learn more about [Compose Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-multiplatform.html).
+<img width="1090" height="693" alt="image" src="https://github.com/user-attachments/assets/fccb08c8-8252-489f-9d82-0afebe04a583" />
+<img width="1085" height="689" alt="image" src="https://github.com/user-attachments/assets/b38cb704-ecbf-43f4-a0fd-fac0a4bf1a87" />
+<img width="1087" height="693" alt="image" src="https://github.com/user-attachments/assets/795cc3bd-07b7-4588-98c6-699bcf8e9952" />

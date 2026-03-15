@@ -66,7 +66,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.2"
     }
     packaging {
         resources {
@@ -95,10 +95,10 @@ compose.desktop {
         nativeDistributions {
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             targetFormats(TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "KenemiMusic"
-            packageVersion = "1.0.0"
-            description = "Lecteur de musique KenemiMusic"
-            copyright = "© 2025 kevinwg02"
+            packageName = "Kenemi Music"
+            packageVersion = "1.0.2"
+            description = "Lecteur de musique Kenemi Music"
+            copyright = "The MIT License"
             vendor = "kevinwg02"
 
             windows {
@@ -110,6 +110,8 @@ compose.desktop {
             linux {
                 iconFile.set(project.file("src/jvmMain/resources/KM-icon.png"))
                 packageName = "kenemimusic"
+                menuGroup = "Audio;Music;"
+                appCategory = "Audio"
             }
         }
     }

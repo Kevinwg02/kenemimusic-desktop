@@ -1,10 +1,12 @@
+### NO ADS, LOCAL FILES, 100% PRIVACY
+
 This is a desktop version of my music player for windows and Linux.
 
 You'll found the .deb and .MSI. If you're interested there is also the android version that works off your local files as well. 
 
 This project is 100% of your local files. There only two functions that uses the internet. Artist images and lyrics directly in the app by API.
 
-###NO ADS, LOCAL FILES, 100% PRIVACY 
+ For more info visit kenemusic.kevw.fr
 
 ## Build and Run Desktop (JVM) Application
 

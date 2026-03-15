@@ -6,7 +6,7 @@ You'll found the .deb and .MSI. If you're interested there is also the android v
 
 This project is 100% of your local files. There only two functions that uses the internet. Artist images and lyrics directly in the app by API.
 
- For more info visit kenemusic.kevw.fr
+ For more info visit kenemimusic.kevw.fr
 
 ## Build and Run Desktop (JVM) Application
 

@@ -8,11 +8,26 @@ This project is 100% of your local files. There only two functions that uses the
 
  For more info visit kenemimusic.kevw.fr
 
+PS: I don't always recreate the new release but the code will be updated.
+Si vous voulez être sur recompiler avec les commande ci-dessous:
+
+# Build Executables:
+
+- Windows
+  - — génère un .msi dans build/compose/binaries/main/msi/
+    ./gradlew packageMsi
+
+- Linux
+  - — génère un .deb dans build/compose/binaries/main/deb/
+    ./gradlew packageDeb
+
+
 ## Build and Run Desktop (JVM) Application
 
 To build and run the development version of the desktop app, use the run configuration from the run widget
 in your IDE's toolbar or run it directly from the terminal:
-- on macOS/Linux
+
+- on Linux
   ```shell
   ./gradlew :composeApp:run
   ```

@@ -4,6 +4,9 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 @Composable
 fun PlayerScreenDesktop() {
@@ -33,7 +37,6 @@ fun PlayerScreenDesktop() {
     }
 
     Row(modifier = Modifier.fillMaxSize()) {
-        // Panneau player
         Box(modifier = Modifier.width(340.dp).fillMaxHeight()) {
             Box(modifier = Modifier.fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)))
@@ -66,7 +69,6 @@ fun PlayerScreenDesktop() {
         Box(modifier = Modifier.fillMaxHeight().width(0.5.dp)
             .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)))
 
-        // Liste chansons
         Box(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.fillMaxSize()
                 .background(MaterialTheme.colorScheme.background.copy(alpha = 0.4f)))
@@ -184,11 +186,8 @@ fun ArtistImage(imageUrl: String?, size: Dp, isPlaying: Boolean) {
             .then(if (isPlaying) Modifier.rotate(rotation) else Modifier),
         contentAlignment = Alignment.Center
     ) {
-        AsyncImage(
-            url = coverUrl,
-            modifier = Modifier.fillMaxSize(),
-            placeholder = { PlaceholderArtImage(size) }
-        )
+        AsyncImage(url = coverUrl, modifier = Modifier.fillMaxSize(),
+            placeholder = { PlaceholderArtImage(size) })
     }
 }
 
@@ -284,6 +283,10 @@ fun PlayerControls(isPlaying: Boolean, isShuffle: Boolean, isRepeat: Boolean,
     }
 }
 
+// =====================================================
+// SONG LIST PANEL with alphabet scroll
+// =====================================================
+
 @Composable
 fun SongListPanel(onSongClick: (Song) -> Unit = {}) {
     val library = LocalMusicLibrary.current
@@ -291,8 +294,28 @@ fun SongListPanel(onSongClick: (Song) -> Unit = {}) {
     val isPlayerBg = LocalPlayerBackground.current
     val bgColor = if (isPlayerBg) MaterialTheme.colorScheme.background.copy(alpha = 0.35f)
     else MaterialTheme.colorScheme.background
-    val surfaceColor = if (isPlayerBg) MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
-    else MaterialTheme.colorScheme.surface
+
+    val grouped = remember(library.songs) {
+        library.songs.groupBy { it.title.firstOrNull()?.uppercaseChar() ?: '#' }.toSortedMap()
+    }
+    val letters = grouped.keys.toList()
+    val letterIndices = remember(grouped) {
+        var index = 0
+        grouped.map { (letter, songs) ->
+            val result = letter to index
+            index += songs.size
+            result
+        }.toMap()
+    }
+
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
+    // Auto-scroll to current song
+    LaunchedEffect(playerState.currentSong?.id) {
+        val idx = library.songs.indexOfFirst { it.id == playerState.currentSong?.id }
+        if (idx >= 0) listState.animateScrollToItem(idx)
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
         Row(modifier = Modifier.fillMaxWidth().background(Color.Transparent)
@@ -320,13 +343,32 @@ fun SongListPanel(onSongClick: (Song) -> Unit = {}) {
                 }
             }
             else -> {
-                val scrollState = rememberScrollState()
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-                    library.songs.forEachIndexed { index, song ->
-                        SongRow(index = index + 1, song = song,
-                            isPlaying = song.id == playerState.currentSong?.id,
-                            onClick = { onSongClick(song) })
+                Row(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) {
+                        itemsIndexed(
+                            items = library.songs,
+                            key = { _, song -> song.id }
+                        ) { index, song ->
+                            SongRow(
+                                index = index + 1,
+                                song = song,
+                                isPlaying = song.id == playerState.currentSong?.id,
+                                onClick = { onSongClick(song) }
+                            )
+                        }
                     }
+
+                    // Alphabet bar
+                    AlphabetBar(
+                        letters = letters,
+                        onLetterClick = { letter ->
+                            val index = letterIndices[letter] ?: return@AlphabetBar
+                            scope.launch { listState.animateScrollToItem(index) }
+                        }
+                    )
                 }
             }
         }
@@ -371,7 +413,8 @@ fun SongRow(index: Int, song: Song, isPlaying: Boolean, onClick: () -> Unit) {
 
 @Composable
 fun SmallIconButton(onClick: () -> Unit, isActive: Boolean = false,
-                    activeColor: Color = MaterialTheme.colorScheme.primary, content: @Composable () -> Unit) {
+                    activeColor: Color = MaterialTheme.colorScheme.primary,
+                    content: @Composable () -> Unit) {
     Box(modifier = Modifier.size(32.dp).clip(CircleShape)
         .background(if (isActive) activeColor.copy(alpha = 0.12f)
         else MaterialTheme.colorScheme.surfaceVariant)

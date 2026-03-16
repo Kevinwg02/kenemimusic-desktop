@@ -3,6 +3,8 @@ package com.kenemi.kenemimusic
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,237 +28,321 @@ fun SettingsScreen(
     val library = LocalMusicLibrary.current
     val scope = rememberCoroutineScope()
     var folderPath by remember { mutableStateOf(library.musicFolderPath) }
+    val scrollState = rememberScrollState()
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "Paramètres",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.W500,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)) {
+        val isCompact = maxWidth < 600.dp
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(if (isCompact) 16.dp else 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Paramètres",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.W500,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
-        SettingsSectionTitle("Bibliothèque musicale")
+            Spacer(modifier = Modifier.height(8.dp))
 
-        SettingsCard {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = "Dossier musique",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = if (folderPath.isBlank()) "Aucun dossier sélectionné" else folderPath,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
-                )
+            SettingsSectionTitle("Bibliothèque musicale")
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = {
-                            // Appel plateforme (défini dans jvmMain)
-                            val selected = pickMusicFolder(folderPath)
-                            if (selected != null) {
-                                folderPath = selected
-                                scope.launch {
-                                    library.onScanStarted(selected)
-                                    try {
-                                        val songs = scanMusicFolder(selected)
-                                        library.onSongsLoaded(songs)
-                                        saveMusicFolder(selected)
-                                    } catch (e: Exception) {
-                                        library.onScanError(e.message ?: "Erreur")
-                                    }
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
-                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text("Choisir un dossier", fontSize = 13.sp)
-                    }
-
-                    if (folderPath.isNotBlank()) {
-                        OutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    library.onScanStarted(folderPath)
-                                    try {
-                                        val songs = scanMusicFolder(folderPath)
-                                        library.onSongsLoaded(songs)
-                                    } catch (e: Exception) {
-                                        library.onScanError(e.message ?: "Erreur")
-                                    }
-                                }
-                            },
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
-                        ) {
-                            Text("Rescanner", fontSize = 13.sp)
-                        }
-                    }
-                }
-
-                when {
-                    library.isLoading -> Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(14.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text("Scan en cours...", fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    library.songs.isNotEmpty() -> Text(
-                        text = "✓ ${library.songs.size} chansons • ${library.artists.size} artistes • ${library.albums.size} albums",
-                        fontSize = 12.sp,
-                        color = KenemiColors.Success
-                    )
-                    library.errorMessage != null -> Text(
-                        text = "⚠ ${library.errorMessage}",
-                        fontSize = 12.sp,
-                        color = KenemiColors.Warning
-                    )
-                }
-            }
-        }
-
-        SettingsSectionTitle("Apparence")
-
-        SettingsCard {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
+            SettingsCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Thème sombre",
+                        text = "Dossier musique",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.W500,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (isDarkTheme) "Mode nuit activé" else "Mode clair activé",
+                        text = if (folderPath.isBlank()) "Aucun dossier sélectionné" else folderPath,
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
+                    )
+
+                    if (isCompact) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = {
+                                    val selected = pickMusicFolder(folderPath)
+                                    if (selected != null) {
+                                        folderPath = selected
+                                        scope.launch {
+                                            library.onScanStarted(selected)
+                                            try {
+                                                val songs = scanMusicFolder(selected)
+                                                library.onSongsLoaded(songs)
+                                                saveMusicFolder(selected)
+                                            } catch (e: Exception) {
+                                                library.onScanError(e.message ?: "Erreur")
+                                            }
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text("Choisir un dossier", fontSize = 13.sp) }
+
+                            if (folderPath.isNotBlank()) {
+                                OutlinedButton(
+                                    onClick = {
+                                        scope.launch {
+                                            library.onScanStarted(folderPath)
+                                            try {
+                                                val songs = scanMusicFolder(folderPath)
+                                                library.onSongsLoaded(songs)
+                                            } catch (e: Exception) {
+                                                library.onScanError(e.message ?: "Erreur")
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                                ) { Text("Rescanner", fontSize = 13.sp) }
+                            }
+                        }
+                    } else {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = {
+                                    val selected = pickMusicFolder(folderPath)
+                                    if (selected != null) {
+                                        folderPath = selected
+                                        scope.launch {
+                                            library.onScanStarted(selected)
+                                            try {
+                                                val songs = scanMusicFolder(selected)
+                                                library.onSongsLoaded(songs)
+                                                saveMusicFolder(selected)
+                                            } catch (e: Exception) {
+                                                library.onScanError(e.message ?: "Erreur")
+                                            }
+                                        }
+                                    }
+                                },
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text("Choisir un dossier", fontSize = 13.sp) }
+
+                            if (folderPath.isNotBlank()) {
+                                OutlinedButton(
+                                    onClick = {
+                                        scope.launch {
+                                            library.onScanStarted(folderPath)
+                                            try {
+                                                val songs = scanMusicFolder(folderPath)
+                                                library.onSongsLoaded(songs)
+                                            } catch (e: Exception) {
+                                                library.onScanError(e.message ?: "Erreur")
+                                            }
+                                        }
+                                    },
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                                ) { Text("Rescanner", fontSize = 13.sp) }
+                            }
+                        }
+                    }
+
+                    when {
+                        library.isLoading -> Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text("Scan en cours...", fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        library.songs.isNotEmpty() -> Text(
+                            text = "✓ ${library.songs.size} chansons • ${library.artists.size} artistes • ${library.albums.size} albums",
+                            fontSize = 12.sp,
+                            color = KenemiColors.Success
+                        )
+                        library.errorMessage != null -> Text(
+                            text = "⚠ ${library.errorMessage}",
+                            fontSize = 12.sp,
+                            color = KenemiColors.Warning
+                        )
+                    }
+                }
+            }
+
+            SettingsSectionTitle("Apparence")
+
+            SettingsCard {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Thème sombre",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = if (isDarkTheme) "Mode nuit activé" else "Mode clair activé",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = isDarkTheme,
+                        onCheckedChange = { onThemeToggle() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                        )
                     )
                 }
-                Switch(
-                    checked = isDarkTheme,
-                    onCheckedChange = { onThemeToggle() },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                    )
-                )
+            }
+
+            SettingsSectionTitle("Cache")
+
+            var imageCacheCleared by remember { mutableStateOf(false) }
+            var lyricsCacheCleared by remember { mutableStateOf(false) }
+
+            SettingsCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Cache images
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Cache images", fontSize = 14.sp,
+                                fontWeight = FontWeight.W500,
+                                color = MaterialTheme.colorScheme.onSurface)
+                            Text(
+                                text = if (imageCacheCleared) "Cache vidé ✓"
+                                else "Photos artistes et pochettes albums",
+                                fontSize = 12.sp,
+                                color = if (imageCacheCleared) KenemiColors.Success
+                                else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                clearImageMemoryCache()
+                                imageCacheCleared = true
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                        ) { Text("Vider", fontSize = 13.sp) }
+                    }
+
+                    Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)))
+
+                    // Cache paroles
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Cache paroles", fontSize = 14.sp,
+                                fontWeight = FontWeight.W500,
+                                color = MaterialTheme.colorScheme.onSurface)
+                            Text(
+                                text = if (lyricsCacheCleared) "Cache vidé ✓"
+                                else "Paroles chargées depuis LrcLib / Lyrics.ovh",
+                                fontSize = 12.sp,
+                                color = if (lyricsCacheCleared) KenemiColors.Success
+                                else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                LyricsService.clearCache()
+                                lyricsCacheCleared = true
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                        ) { Text("Vider", fontSize = 13.sp) }
+                    }
+
+                    Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)))
+
+                    // Tout vider
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                clearImageMemoryCache()
+                                LyricsService.clearCache()
+                                imageCacheCleared = true
+                                lyricsCacheCleared = true
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.error)
+                        ) { Text("Tout vider", fontSize = 13.sp) }
+                    }
+                }
             }
         }
+    }
 
-        SettingsSectionTitle("Cache")
+} // Column
 
-        var imageCacheCleared by remember { mutableStateOf(false) }
-        var lyricsCacheCleared by remember { mutableStateOf(false) }
 
-        SettingsCard {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Cache images
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text("Cache images", fontSize = 14.sp,
-                            fontWeight = FontWeight.W500,
-                            color = MaterialTheme.colorScheme.onSurface)
-                        Text(
-                            text = if (imageCacheCleared) "Cache vidé ✓"
-                            else "Photos artistes et pochettes albums",
-                            fontSize = 12.sp,
-                            color = if (imageCacheCleared) KenemiColors.Success
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            clearImageMemoryCache()
-                            imageCacheCleared = true
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
-                    ) { Text("Vider", fontSize = 13.sp) }
-                }
-
-                Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
-                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)))
-
-                // Cache paroles
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text("Cache paroles", fontSize = 14.sp,
-                            fontWeight = FontWeight.W500,
-                            color = MaterialTheme.colorScheme.onSurface)
-                        Text(
-                            text = if (lyricsCacheCleared) "Cache vidé ✓"
-                            else "Paroles chargées depuis LrcLib / Lyrics.ovh",
-                            fontSize = 12.sp,
-                            color = if (lyricsCacheCleared) KenemiColors.Success
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            LyricsService.clearCache()
-                            lyricsCacheCleared = true
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
-                    ) { Text("Vider", fontSize = 13.sp) }
-                }
-
-                Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
-                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)))
-
-                // Tout vider
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            clearImageMemoryCache()
-                            LyricsService.clearCache()
-                            imageCacheCleared = true
-                            lyricsCacheCleared = true
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error),
-                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.error)
-                    ) { Text("Tout vider", fontSize = 13.sp) }
-                }
+@Composable
+fun CacheRow(
+    title: String,
+    subtitle: String,
+    subtitleColor: androidx.compose.ui.graphics.Color,
+    isCompact: Boolean,
+    onClear: () -> Unit
+) {
+    if (isCompact) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.W500,
+                color = MaterialTheme.colorScheme.onSurface)
+            Text(subtitle, fontSize = 12.sp, color = subtitleColor)
+            OutlinedButton(
+                onClick = onClear,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+            ) { Text("Vider", fontSize = 13.sp) }
+        }
+    } else {
+        Row(modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Text(title, fontSize = 14.sp, fontWeight = FontWeight.W500,
+                    color = MaterialTheme.colorScheme.onSurface)
+                Text(subtitle, fontSize = 12.sp, color = subtitleColor)
             }
+            OutlinedButton(
+                onClick = onClear,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+            ) { Text("Vider", fontSize = 13.sp) }
         }
     }
 }

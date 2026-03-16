@@ -1,17 +1,24 @@
 package com.kenemi.kenemimusic
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-//import org.jetbrains.compose.resources.painterResource
-import androidx.compose.ui.res.painterResource
 
 fun main() = application {
     val library = MusicLibrary()
@@ -38,7 +45,7 @@ fun main() = application {
     }
 
     val windowState = rememberWindowState(size = DpSize(1100.dp, 700.dp))
-    val minWidth = 420.dp
+    val minWidth = 355.dp
     val minHeight = 500.dp
 
     Window(
@@ -50,6 +57,7 @@ fun main() = application {
         },
         title = "Kenemi Music",
         state = windowState,
+        undecorated = true,
         icon = painterResource("KM-icon.ico")
     ) {
         val density = LocalDensity.current
@@ -59,6 +67,9 @@ fun main() = application {
             }
         }
 
+        val isMaximized = windowState.placement == WindowPlacement.Maximized
+
+        // KenemiMusicTheme doit entourer la TitleBar aussi
         App(
             isDesktop = true,
             library = library,
@@ -67,7 +78,23 @@ fun main() = application {
             favoritesState = favoritesState,
             playlistsState = playlistsState,
             statsState = statsState,
-            initialDarkTheme = SettingsManager.isDarkTheme
+            initialDarkTheme = SettingsManager.isDarkTheme,
+            titleBar = {
+                CustomTitleBar(
+                    onMinimize = { windowState.isMinimized = true },
+                    onMaximize = {
+                        windowState.placement = if (isMaximized)
+                            WindowPlacement.Floating else WindowPlacement.Maximized
+                    },
+                    onClose = {
+                        playerController.release()
+                        FavoritesManager.save(favoritesState.favoriteIds)
+                        PlaylistsManager.save(playlistsState.playlists)
+                        exitApplication()
+                    },
+                    isMaximized = isMaximized
+                )
+            }
         )
     }
 }

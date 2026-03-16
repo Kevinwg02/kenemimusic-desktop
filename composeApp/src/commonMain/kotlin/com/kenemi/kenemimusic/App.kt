@@ -1,6 +1,7 @@
 package com.kenemi.kenemimusic
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,7 +14,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.RoundedCornerShape
 
 interface PlayerActions {
     fun play(song: Song)
@@ -51,7 +51,8 @@ fun App(
     favoritesState: FavoritesState = remember { FavoritesState() },
     playlistsState: PlaylistsState = remember { PlaylistsState() },
     statsState: StatsState = remember { StatsState() },
-    initialDarkTheme: Boolean = true
+    initialDarkTheme: Boolean = true,
+    titleBar: @Composable () -> Unit = {}
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.PLAYER) }
     var isDarkTheme by remember { mutableStateOf(initialDarkTheme) }
@@ -68,10 +69,15 @@ fun App(
         LocalPlayerBackground provides (currentScreen is Screen.PLAYER),
     ) {
         KenemiMusicTheme(darkTheme = isDarkTheme) {
-            if (isDesktop) {
-                DesktopLayout(currentScreen, { currentScreen = it }, isDarkTheme, { isDarkTheme = !isDarkTheme })
-            } else {
-                AndroidLayout(currentScreen, { currentScreen = it }, isDarkTheme, { isDarkTheme = !isDarkTheme })
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Barre de titre custom (vide sur Android)
+                titleBar()
+
+                if (isDesktop) {
+                    DesktopLayout(currentScreen, { currentScreen = it }, isDarkTheme, { isDarkTheme = !isDarkTheme })
+                } else {
+                    AndroidLayout(currentScreen, { currentScreen = it }, isDarkTheme, { isDarkTheme = !isDarkTheme })
+                }
             }
         }
     }

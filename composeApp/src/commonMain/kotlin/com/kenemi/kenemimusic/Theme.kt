@@ -16,8 +16,11 @@ object KenemiColors {
     val Blue200    = Color(0xFF66C8FF)  // clair
 
     // Backgrounds dark
-    val DarkBg       = Color(0xFF0D1117)
-    val DarkSurface  = Color(0xFF161B22)
+    // originalcolor
+//    val DarkBg       = Color(0xFF0D1117)
+//    val DarkSurface  = Color(0xFF161B22)
+    val DarkBg       = Color(0xFF000000)
+    val DarkSurface  = Color(0xFF000000)
     val DarkElevated = Color(0xFF21262D)
     val DarkBorder   = Color(0xFF30363D)
 

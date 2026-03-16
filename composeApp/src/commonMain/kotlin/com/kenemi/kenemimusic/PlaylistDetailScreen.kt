@@ -1,6 +1,7 @@
 package com.kenemi.kenemimusic
 
 import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,132 +34,140 @@ fun PlaylistDetailScreen(playlistId: Long, onBack: () -> Unit) {
     var showRenameDialog by remember { mutableStateOf(false) }
     var showAddSongsDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isCompact = maxWidth < 600.dp
 
-        // ── En-tête ──
-        Row(
-            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(modifier = Modifier.size(32.dp).clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .clickable { onBack() },
-                contentAlignment = Alignment.Center) {
-                Icon(imageVector = Icons.Previous, contentDescription = "Retour",
-                    tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
-            }
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
-            Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center) {
-                Icon(imageVector = Icons.Playlists, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            }
+            // ── En-tête ──
+            Column(
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Bouton retour
+                    Box(modifier = Modifier.size(32.dp).clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { onBack() },
+                        contentAlignment = Alignment.Center) {
+                        Icon(imageVector = Icons.Previous, contentDescription = "Retour",
+                            tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
+                    }
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = playlist?.name ?: "Playlist",
-                    fontSize = 16.sp, fontWeight = FontWeight.W500,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(text = "${songs.size} titre${if (songs.size > 1) "s" else ""}",
-                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+                    // Icône playlist
+                    Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center) {
+                        Icon(imageVector = Icons.Playlists, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    }
 
-            // Bouton renommer
-            IconButton(onClick = { showRenameDialog = true }, modifier = Modifier.size(32.dp)) {
-                Icon(imageVector = Icons.Settings, contentDescription = "Renommer",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
-            }
+                    // Titre + compteur
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = playlist?.name ?: "Playlist",
+                            fontSize = 16.sp, fontWeight = FontWeight.W500,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(text = "${songs.size} titre${if (songs.size > 1) "s" else ""}",
+                            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
 
-            // Bouton tout jouer
-            if (songs.isNotEmpty()) {
-                OutlinedButton(
-                    onClick = { actions.playAll(songs, 0) },
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
-                    modifier = Modifier.height(32.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
-                ) { Text("Tout jouer", fontSize = 12.sp) }
-            }
+                    // Bouton renommer (toujours visible)
+                    IconButton(onClick = { showRenameDialog = true }, modifier = Modifier.size(32.dp)) {
+                        Icon(imageVector = Icons.Settings, contentDescription = "Renommer",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                    }
 
-            // Bouton ajouter des chansons
-            OutlinedButton(
-                onClick = { showAddSongsDialog = true },
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
-                modifier = Modifier.height(32.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
-            ) { Text("+ Ajouter", fontSize = 12.sp) }
-        }
-
-        Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
-            .background(MaterialTheme.colorScheme.outline))
-
-        // ── Liste des chansons ──
-        if (songs.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Playlist vide", fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Appuyez sur + Ajouter pour remplir la playlist",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                }
-            }
-        } else {
-            val scrollState = rememberScrollState()
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-                songs.forEachIndexed { index, song ->
-                    PlaylistSongRow(
-                        index = index + 1,
-                        song = song,
-                        isPlaying = song.id == playerState.currentSong?.id,
-                        onPlay = { actions.playAll(songs, index) },
-                        onRemove = {
-                            playlist?.let {
-                                playlists.removeSong(it.id, song.id)
-                                savePlaylists(playlists.playlists)
-                            }
+                    // Boutons sur la même ligne si assez de place
+                    if (!isCompact) {
+                        if (songs.isNotEmpty()) {
+                            OutlinedButton(
+                                onClick = { actions.playAll(songs, 0) },
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                                modifier = Modifier.height(32.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text("Tout jouer", fontSize = 12.sp) }
                         }
-                    )
+                        OutlinedButton(
+                            onClick = { showAddSongsDialog = true },
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                            modifier = Modifier.height(32.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                        ) { Text("+ Ajouter", fontSize = 12.sp) }
+                    }
+                }
+
+                // Boutons en dessous si compact
+                if (isCompact) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (songs.isNotEmpty()) {
+                            OutlinedButton(
+                                onClick = { actions.playAll(songs, 0) },
+                                modifier = Modifier.weight(1f).height(32.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text("Tout jouer", fontSize = 12.sp) }
+                        }
+                        OutlinedButton(
+                            onClick = { showAddSongsDialog = true },
+                            modifier = Modifier.weight(1f).height(32.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                        ) { Text("+ Ajouter", fontSize = 12.sp) }
+                    }
+                }
+            }
+
+            Box(modifier = Modifier.fillMaxWidth().height(0.5.dp)
+                .background(MaterialTheme.colorScheme.outline))
+
+            // ── Liste des chansons ──
+            if (songs.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Playlist vide", fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Appuyez sur + Ajouter pour remplir la playlist",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                    }
+                }
+            } else {
+                val scrollState = rememberScrollState()
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
+                    songs.forEachIndexed { index, song ->
+                        PlaylistSongRow(
+                            index = index + 1,
+                            song = song,
+                            isPlaying = song.id == playerState.currentSong?.id,
+                            onPlay = { actions.playAll(songs, index) },
+                            onRemove = {
+                                playlist?.let {
+                                    playlists.removeSong(it.id, song.id)
+                                    savePlaylists(playlists.playlists)
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
-    }
 
-    // ── Dialogue renommer ──
-    if (showRenameDialog) {
-        RenamePlaylistDialog(
-            currentName = playlist?.name ?: "",
-            onConfirm = { newName ->
-                playlist?.let {
-                    playlists.rename(it.id, newName)
-                    savePlaylists(playlists.playlists)
-                }
-                showRenameDialog = false
-            },
-            onDismiss = { showRenameDialog = false }
-        )
-    }
+    } // Column
+} // BoxWithConstraints
 
-    // ── Dialogue ajouter des chansons ──
-    if (showAddSongsDialog) {
-        AddSongsDialog(
-            library = library,
-            currentSongIds = playlist?.songIds ?: emptyList(),
-            onAdd = { songId ->
-                playlist?.let {
-                    playlists.addSong(it.id, songId)
-                    savePlaylists(playlists.playlists)
-                }
-            },
-            onDismiss = { showAddSongsDialog = false }
-        )
-    }
-}
 
 // =====================================================
 // SONG ROW avec bouton supprimer

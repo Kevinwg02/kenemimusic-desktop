@@ -1,4 +1,4 @@
-rootProject.name = "MyApplication1"
+rootProject.name = "kenemimusic"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

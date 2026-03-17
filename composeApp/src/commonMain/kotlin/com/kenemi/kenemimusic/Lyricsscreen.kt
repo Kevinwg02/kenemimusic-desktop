@@ -144,6 +144,8 @@ fun LyricsContent(song: Song, playerState: PlayerStateHolder, onDismiss: () -> U
             error != null -> NotFoundView(
                 song = song,
                 onManualLyrics = { manual ->
+                    // Sauvegarder et mettre en cache
+                    LyricsService.saveManual(song.artist, song.title, manual)
                     lyricsResult = LyricsResult(plain = manual, source = "Manuel")
                     error = null
                 }
@@ -251,8 +253,8 @@ fun NotFoundView(song: Song, onManualLyrics: (String) -> Unit) {
             Text("Paroles introuvables", fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("${song.title} — ${song.artist}", fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-            textAlign = TextAlign.Center)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedButton(
                 onClick = { showEditor = true },

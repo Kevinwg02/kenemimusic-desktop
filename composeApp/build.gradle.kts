@@ -96,7 +96,7 @@ compose.desktop {
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             targetFormats(TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Kenemi Music"
-            packageVersion = "1.1.4"
+            packageVersion = "1.1.5"
             description = "Lecteur de musique Kenemi Music"
             copyright = "The MIT License"
             vendor = "kevinwg02"

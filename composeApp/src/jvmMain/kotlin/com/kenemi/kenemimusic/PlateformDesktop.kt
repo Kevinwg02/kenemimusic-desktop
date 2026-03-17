@@ -34,3 +34,10 @@ actual fun loadStats(): List<PlayEventData> {
 actual fun clearImageMemoryCache() {
     clearAsyncImageCache()
 }
+
+actual fun getImageDiskBytes(url: String): ByteArray? = ImageDiskCache.get(url)
+actual fun saveImageDiskBytes(url: String, bytes: ByteArray) = ImageDiskCache.put(url, bytes)
+actual fun clearImageDiskCache() = ImageDiskCache.clear()
+actual fun getImageDiskSizeKb(): Long = ImageDiskCache.sizeKb()
+actual fun saveManualLyrics(artist: String, title: String, lyrics: String) = LyricsManager.save(artist, title, lyrics)
+actual fun loadManualLyrics(artist: String, title: String): String? = LyricsManager.load(artist, title)

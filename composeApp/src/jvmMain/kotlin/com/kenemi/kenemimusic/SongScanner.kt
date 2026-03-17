@@ -1,5 +1,7 @@
 package com.kenemi.kenemimusic
 
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.tag.FieldKey
 import java.io.File
 
 // =====================================================
@@ -96,17 +98,17 @@ data class AudioMetadata(
  */
 fun readAudioMetadata(file: File): AudioMetadata {
     return try {
-        val audioFile = org.jaudiotagger.audio.AudioFileIO.read(file)
+        val audioFile = AudioFileIO.read(file)
         val tag = audioFile.tag
         val header = audioFile.audioHeader
 
         AudioMetadata(
-            title = tag?.getFirst(org.jaudiotagger.tag.FieldKey.TITLE) ?: "",
-            artist = tag?.getFirst(org.jaudiotagger.tag.FieldKey.ARTIST) ?: "",
-            album = tag?.getFirst(org.jaudiotagger.tag.FieldKey.ALBUM) ?: "",
+            title = tag?.getFirst(FieldKey.TITLE) ?: "",
+            artist = tag?.getFirst(FieldKey.ARTIST) ?: "",
+            album = tag?.getFirst(FieldKey.ALBUM) ?: "",
             duration = (header?.trackLength?.toLong() ?: 0L) * 1000L,
-            year = tag?.getFirst(org.jaudiotagger.tag.FieldKey.YEAR)?.toIntOrNull() ?: 0,
-            trackNumber = tag?.getFirst(org.jaudiotagger.tag.FieldKey.TRACK)?.toIntOrNull() ?: 0,
+            year = tag?.getFirst(FieldKey.YEAR)?.toIntOrNull() ?: 0,
+            trackNumber = tag?.getFirst(FieldKey.TRACK)?.toIntOrNull() ?: 0,
         )
     } catch (e: Exception) {
         // Fallback : extraire infos du nom de fichier

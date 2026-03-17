@@ -382,3 +382,9 @@ expect fun savePlaylists(playlists: List<Playlist>)
 expect fun loadStats(): List<PlayEventData>
 
 expect fun clearImageMemoryCache()
+expect fun getImageDiskBytes(url: String): ByteArray?
+expect fun saveImageDiskBytes(url: String, bytes: ByteArray)
+expect fun clearImageDiskCache()
+expect fun getImageDiskSizeKb(): Long
+expect fun saveManualLyrics(artist: String, title: String, lyrics: String)
+expect fun loadManualLyrics(artist: String, title: String): String?

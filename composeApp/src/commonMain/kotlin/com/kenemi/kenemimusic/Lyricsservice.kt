@@ -55,9 +55,24 @@ object LyricsService {
         val key = "$artist|$title"
         lyricsCache[key]?.let { return it }
 
+        // Chercher d'abord les paroles sauvegardées manuellement
+        val manual = loadManualLyrics(artist, title)
+        if (manual != null) {
+            val result = LyricsResult(plain = manual, source = "Manuel")
+            lyricsCache[key] = result
+            return result
+        }
+
         val result = tryLrcLib(title, artist, duration)
         lyricsCache[key] = result
         return result
+    }
+
+    fun saveManual(artist: String, title: String, lyrics: String) {
+        val key = "$artist|$title"
+        val result = LyricsResult(plain = lyrics, source = "Manuel")
+        lyricsCache[key] = result
+        saveManualLyrics(artist, title, lyrics)
     }
 
     // ──────────────────────────────────────────

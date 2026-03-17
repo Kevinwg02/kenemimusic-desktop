@@ -1,13 +1,6 @@
 package com.kenemi.kenemimusic
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
@@ -19,6 +12,7 @@ import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.awt.Dimension
 
 fun main() = application {
     val library = MusicLibrary()
@@ -63,7 +57,7 @@ fun main() = application {
         val density = LocalDensity.current
         SideEffect {
             window.minimumSize = with(density) {
-                java.awt.Dimension(minWidth.toPx().toInt(), minHeight.toPx().toInt())
+                Dimension(minWidth.toPx().toInt(), minHeight.toPx().toInt())
             }
         }
 

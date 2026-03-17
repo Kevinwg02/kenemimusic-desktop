@@ -17,14 +17,9 @@ import org.jetbrains.skia.FilterTileMode
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Surface
 
-// Caches séparés : bytes bruts, images normales, images floutées
 private val bytesCache = mutableMapOf<String, ByteArray>()
 private val imageCache = mutableMapOf<String, ImageBitmap?>()
 private val blurCache  = mutableMapOf<String, ImageBitmap?>()
-
-// =====================================================
-// IMAGE NORMALE
-// =====================================================
 
 @Composable
 fun AsyncImage(
@@ -57,10 +52,6 @@ fun AsyncImage(
     }
 }
 
-// =====================================================
-// IMAGE FLOUTÉE
-// =====================================================
-
 @Composable
 fun BlurredAsyncImage(
     url: String?,
@@ -83,23 +74,25 @@ fun BlurredAsyncImage(
     }
 
     if (bitmap != null) {
-        Image(
-            painter = BitmapPainter(bitmap!!),
-            contentDescription = null,
-            modifier = modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
+        Image(painter = BitmapPainter(bitmap!!), contentDescription = null,
+            modifier = modifier.fillMaxSize(), contentScale = ContentScale.Crop)
     }
 }
 
-// =====================================================
-// UTILITAIRES
-// =====================================================
-
 private suspend fun fetchBytes(url: String): ByteArray {
+    // 1. Cache mémoire
     bytesCache[url]?.let { return it }
+
+    // 2. Cache disque via expect/actual
+    getImageDiskBytes(url)?.let { bytes ->
+        bytesCache[url] = bytes
+        return bytes
+    }
+
+    // 3. Téléchargement
     val bytes = ImageService.client.get(url).readBytes()
     bytesCache[url] = bytes
+    saveImageDiskBytes(url, bytes)
     return bytes
 }
 
@@ -115,14 +108,9 @@ private fun blurSkiaImage(bytes: ByteArray, radius: Float): ImageBitmap {
     return surface.makeImageSnapshot().toComposeImageBitmap()
 }
 
-// =====================================================
-// NETTOYAGE DU CACHE
-// =====================================================
-
 fun clearAsyncImageCache() {
     bytesCache.clear()
     imageCache.clear()
     blurCache.clear()
+    clearImageDiskCache()
 }
-
-fun getImageCacheSize(): Int = bytesCache.size

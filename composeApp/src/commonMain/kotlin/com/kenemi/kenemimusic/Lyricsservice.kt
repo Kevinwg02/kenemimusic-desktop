@@ -51,28 +51,55 @@ object LyricsService {
         }
     }
 
+    // Nettoyer le nom d'artiste — garder seulement le premier
+    private fun cleanArtist(artist: String): String {
+        val separators = listOf(
+            " feat. ", " feat ", " ft. ", " ft ",
+            " featuring ", " & ", " x ", " X ",
+            " vs. ", " vs ", " with ", " / ", "/"
+        )
+        var clean = artist
+        for (sep in separators) {
+            if (clean.contains(sep, ignoreCase = true)) {
+                clean = clean.substringBefore(sep).trim()
+                break
+            }
+        }
+        return clean
+    }
+
     suspend fun getLyrics(title: String, artist: String, duration: Long? = null): LyricsResult? {
-        val key = "$artist|$title"
+        val clean = cleanArtist(artist)
+        val key = "$clean|$title"
         lyricsCache[key]?.let { return it }
 
-        // Chercher d'abord les paroles sauvegardées manuellement
-        val manual = loadManualLyrics(artist, title)
+        // 1. Paroles manuelles sauvegardées
+        val manual = loadManualLyrics(clean, title)
         if (manual != null) {
             val result = LyricsResult(plain = manual, source = "Manuel")
             lyricsCache[key] = result
             return result
         }
 
-        val result = tryLrcLib(title, artist, duration)
+        // 2. LrcLib avec artiste propre + durée
+        var result = tryLrcLib(title, clean, duration)
+
+        // 3. Fallback : LrcLib sans durée
+        if (result == null) result = tryLrcLib(title, clean, null)
+
+        // 4. Fallback : LrcLib sans artiste (titre seul)
+        if (result == null) result = tryLrcLib(title, "", null)
+
         lyricsCache[key] = result
         return result
     }
 
     fun saveManual(artist: String, title: String, lyrics: String) {
-        val key = "$artist|$title"
+        val clean = cleanArtist(artist)
+        val key = "$clean|$title"
         val result = LyricsResult(plain = lyrics, source = "Manuel")
         lyricsCache[key] = result
-        saveManualLyrics(artist, title, lyrics)
+        saveManualLyrics(clean, title, lyrics)
     }
 
     // ──────────────────────────────────────────
@@ -82,8 +109,8 @@ object LyricsService {
         return try {
             val params = buildString {
                 append("track_name=${title.encodeUrl()}")
-                append("&artist_name=${artist.encodeUrl()}")
-                if (duration != null) append("&duration=${duration / 1000}")
+                if (artist.isNotBlank()) append("&artist_name=${artist.encodeUrl()}")
+                if (duration != null && duration > 0) append("&duration=${duration / 1000}")
             }
             val response: LrcLibResponse = client
                 .get("https://lrclib.net/api/get?$params")

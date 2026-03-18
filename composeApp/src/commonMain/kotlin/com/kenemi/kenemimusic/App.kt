@@ -24,6 +24,7 @@ interface PlayerActions {
     fun seekTo(position: Float)
     fun toggleShuffle()
     fun toggleRepeat()
+    fun setVolume(volume: Int)
 }
 
 val LocalNavigate = staticCompositionLocalOf<(Screen) -> Unit> { {} }
@@ -39,6 +40,7 @@ val LocalPlayerActions = staticCompositionLocalOf<PlayerActions> {
         override fun seekTo(position: Float) {}
         override fun toggleShuffle() {}
         override fun toggleRepeat() {}
+        override fun setVolume(volume: Int) {}
     }
 }
 
@@ -99,6 +101,8 @@ fun ScreenContent(currentScreen: Screen, onScreenChange: (Screen) -> Unit,
         is Screen.ALBUM_DETAIL    -> AlbumDetailScreen(albumId = s.albumId, onBack = { onScreenChange(Screen.ALBUMS) })
         is Screen.PLAYLIST_DETAIL -> PlaylistDetailScreen(playlistId = s.playlistId, onBack = { onScreenChange(Screen.PLAYLISTS) })
         is Screen.CURRENT_QUEUE   -> CurrentQueueScreen(onBack = { onScreenChange(Screen.PLAYER) })
+        is Screen.RECENT  -> RecentScreen()
+        is Screen.SEARCH  -> SearchScreen()
     }
 }
 
@@ -338,6 +342,8 @@ fun NavIconComposable(icon: NavIcon, tint: Color) {
         NavIcon.STATS     -> Icons.Stats
         NavIcon.SETTINGS  -> Icons.Settings
         NavIcon.FAVORITES -> Icons.Heart
+        NavIcon.RECENT    -> Icons.Player
+        NavIcon.SEARCH    -> Icons.Search
     }
     Icon(imageVector = imageVector, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
 }

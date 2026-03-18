@@ -62,6 +62,7 @@ fun PlayerScreenDesktop() {
                     onRepeatToggle = { actions.toggleRepeat() },
                     onLyricsClick = { showLyrics = true },
                     onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
+                    onVolumeChange = { actions.setVolume(it) },
                 )
             }
         }
@@ -116,6 +117,7 @@ fun PlayerScreenAndroid() {
             onRepeatToggle = { actions.toggleRepeat() },
             onLyricsClick = { showLyrics = true },
             onCurrentSongClick = { navigate(Screen.CURRENT_QUEUE) },
+            onVolumeChange = { actions.setVolume(it) },
         )
     }
 }
@@ -133,6 +135,7 @@ fun PlayerContent(
     onRepeatToggle: () -> Unit,
     onLyricsClick: () -> Unit,
     onCurrentSongClick: () -> Unit,
+    onVolumeChange: (Int) -> Unit = {},
 ) {
     ArtistImage(imageUrl = state.currentSong?.albumArtUrl, size = 160.dp, isPlaying = state.isPlaying)
     Spacer(modifier = Modifier.height(20.dp))
@@ -162,6 +165,8 @@ fun PlayerContent(
         onPlayPause = onPlayPause, onNext = onNext, onPrevious = onPrevious,
         onShuffleToggle = onShuffleToggle, onRepeatToggle = onRepeatToggle,
     )
+    Spacer(modifier = Modifier.height(12.dp))
+    VolumeSlider(volume = state.volume, onVolumeChange = onVolumeChange)
 }
 
 @Composable
@@ -429,4 +434,45 @@ fun formatDuration(ms: Long): String {
     val min = totalSec / 60
     val sec = totalSec % 60
     return "$min:${sec.toString().padStart(2, '0')}"
+}
+
+// =====================================================
+// SLIDER DE VOLUME
+// =====================================================
+
+@Composable
+fun VolumeSlider(volume: Int, onVolumeChange: (Int) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Icône volume bas
+        Icon(
+            imageVector = if (volume == 0) Icons.VolumeMute else Icons.VolumeDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp).clickable { onVolumeChange(0) }
+        )
+
+        Slider(
+            value = volume.toFloat(),
+            onValueChange = { onVolumeChange(it.toInt()) },
+            valueRange = 0f..100f,
+            modifier = Modifier.weight(1f),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        )
+
+        // Icône volume haut
+        Icon(
+            imageVector = Icons.VolumeUp,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp).clickable { onVolumeChange(100) }
+        )
+    }
 }

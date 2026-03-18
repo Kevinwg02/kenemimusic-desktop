@@ -14,6 +14,7 @@ data class PlayerState(
     val isFavorite: Boolean = false,
     val isShuffle: Boolean = false,
     val isRepeat: Boolean = false,
+    val volume: Int = 100,
 )
 
 // =====================================================
@@ -29,6 +30,7 @@ class PlayerStateHolder {
     var isShuffle by mutableStateOf(false)
     var isRepeat by mutableStateOf(false)
     var queue by mutableStateOf<List<Song>>(emptyList())
+    var volume by mutableStateOf(100)  // 0-100
 
     fun toPlayerState() = PlayerState(
         currentSong = currentSong,
@@ -38,6 +40,7 @@ class PlayerStateHolder {
         isFavorite = isFavorite,
         isShuffle = isShuffle,
         isRepeat = isRepeat,
+        volume = volume,
     )
 }
 

@@ -84,6 +84,12 @@ class PlayerController(
     override fun toggleShuffle() { state.isShuffle = !state.isShuffle }
     override fun toggleRepeat()  { state.isRepeat  = !state.isRepeat  }
 
+    override fun setVolume(volume: Int) {
+        val clamped = volume.coerceIn(0, 100)
+        state.volume = clamped
+        player.setVolume(clamped)
+    }
+
     private fun recordCurrentPlay() {
         val song = state.currentSong ?: return
         if (playStartMs == 0L) return  // pas de lecture en cours, rien à enregistrer

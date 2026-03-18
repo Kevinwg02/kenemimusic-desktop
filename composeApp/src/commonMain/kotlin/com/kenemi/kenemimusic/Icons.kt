@@ -281,6 +281,128 @@ object Icons {
             horizontalLineTo(3f); close()
         }
     }.build()
+
+    val VolumeDown: ImageVector get() = ImageVector.Builder(
+        defaultWidth = 24.dp, defaultHeight = 24.dp,
+        viewportWidth = 24f, viewportHeight = 24f
+    ).apply {
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(18.5f, 12f)
+            curveTo(18.5f, 10.23f, 17.48f, 8.71f, 16f, 7.97f)
+            verticalLineTo(16.02f)
+            curveTo(17.48f, 15.29f, 18.5f, 13.77f, 18.5f, 12f)
+            close()
+            moveTo(5f, 9f)
+            verticalLineTo(15f)
+            horizontalLineTo(9f)
+            lineTo(14f, 20f)
+            verticalLineTo(4f)
+            lineTo(9f, 9f)
+            horizontalLineTo(5f)
+            close()
+        }
+    }.build()
+
+    val VolumeUp: ImageVector get() = ImageVector.Builder(
+        defaultWidth = 24.dp, defaultHeight = 24.dp,
+        viewportWidth = 24f, viewportHeight = 24f
+    ).apply {
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(3f, 9f)
+            verticalLineTo(15f)
+            horizontalLineTo(7f)
+            lineTo(12f, 20f)
+            verticalLineTo(4f)
+            lineTo(7f, 9f)
+            horizontalLineTo(3f)
+            close()
+            moveTo(16.5f, 12f)
+            curveTo(16.5f, 10.23f, 15.48f, 8.71f, 14f, 7.97f)
+            verticalLineTo(16.02f)
+            curveTo(15.48f, 15.29f, 16.5f, 13.77f, 16.5f, 12f)
+            close()
+            moveTo(14f, 3.23f)
+            verticalLineTo(5.29f)
+            curveTo(16.89f, 6.15f, 19f, 8.83f, 19f, 12f)
+            curveTo(19f, 15.17f, 16.89f, 17.85f, 14f, 18.71f)
+            verticalLineTo(20.77f)
+            curveTo(18.01f, 19.86f, 21f, 16.28f, 21f, 12f)
+            curveTo(21f, 7.72f, 18.01f, 4.14f, 14f, 3.23f)
+            close()
+        }
+    }.build()
+
+    val VolumeMute: ImageVector get() = ImageVector.Builder(
+        defaultWidth = 24.dp, defaultHeight = 24.dp,
+        viewportWidth = 24f, viewportHeight = 24f
+    ).apply {
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(16.5f, 12f)
+            curveTo(16.5f, 10.23f, 15.48f, 8.71f, 14f, 7.97f)
+            verticalLineTo(11.18f)
+            lineTo(16.45f, 13.63f)
+            curveTo(16.48f, 13.1f, 16.5f, 12.55f, 16.5f, 12f)
+            close()
+            moveTo(19f, 12f)
+            curveTo(19f, 12.94f, 18.8f, 13.82f, 18.46f, 14.64f)
+            lineTo(19.97f, 16.15f)
+            curveTo(20.62f, 14.91f, 21f, 13.5f, 21f, 12f)
+            curveTo(21f, 7.72f, 18.01f, 4.14f, 14f, 3.23f)
+            verticalLineTo(5.29f)
+            curveTo(16.89f, 6.15f, 19f, 8.83f, 19f, 12f)
+            close()
+            moveTo(4.27f, 3f)
+            lineTo(3f, 4.27f)
+            lineTo(7.73f, 9f)
+            horizontalLineTo(3f)
+            verticalLineTo(15f)
+            horizontalLineTo(7f)
+            lineTo(12f, 20f)
+            verticalLineTo(13.27f)
+            lineTo(16.25f, 17.52f)
+            curveTo(15.58f, 18.04f, 14.83f, 18.45f, 14f, 18.7f)
+            verticalLineTo(20.76f)
+            curveTo(15.38f, 20.45f, 16.63f, 19.82f, 17.68f, 18.96f)
+            lineTo(19.73f, 21f)
+            lineTo(21f, 19.73f)
+            lineTo(12f, 10.73f)
+            lineTo(4.27f, 3f)
+            close()
+            moveTo(12f, 4f)
+            lineTo(9.91f, 6.09f)
+            lineTo(12f, 8.18f)
+            verticalLineTo(4f)
+            close()
+        }
+    }.build()
+
+    val Search: ImageVector get() = ImageVector.Builder(
+        defaultWidth = 24.dp, defaultHeight = 24.dp,
+        viewportWidth = 24f, viewportHeight = 24f
+    ).apply {
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(15.5f, 14f)
+            horizontalLineTo(14.71f)
+            lineTo(14.43f, 13.73f)
+            curveTo(15.41f, 12.59f, 16f, 11.11f, 16f, 9.5f)
+            curveTo(16f, 5.91f, 13.09f, 3f, 9.5f, 3f)
+            curveTo(5.91f, 3f, 3f, 5.91f, 3f, 9.5f)
+            curveTo(3f, 13.09f, 5.91f, 16f, 9.5f, 16f)
+            curveTo(11.11f, 16f, 12.59f, 15.41f, 13.73f, 14.43f)
+            lineTo(14f, 14.71f)
+            verticalLineTo(15.5f)
+            lineTo(19f, 20.49f)
+            lineTo(20.49f, 19f)
+            lineTo(15.5f, 14f)
+            close()
+            moveTo(9.5f, 14f)
+            curveTo(7.01f, 14f, 5f, 11.99f, 5f, 9.5f)
+            curveTo(5f, 7.01f, 7.01f, 5f, 9.5f, 5f)
+            curveTo(11.99f, 5f, 14f, 7.01f, 14f, 9.5f)
+            curveTo(14f, 11.99f, 11.99f, 14f, 9.5f, 14f)
+            close()
+        }
+    }.build()
 }
 
 // =====================================================

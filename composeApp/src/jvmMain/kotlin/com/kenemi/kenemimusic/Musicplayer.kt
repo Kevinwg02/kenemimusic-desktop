@@ -71,6 +71,11 @@ class MusicPlayer {
         return player?.status()?.isPlaying ?: false
     }
 
+    fun setVolume(volume: Int) {
+        if (!isVlcAvailable) return
+        player?.audio()?.setVolume(volume)
+    }
+
     fun getDuration(): Long {
         return player?.status()?.length() ?: 0L
     }

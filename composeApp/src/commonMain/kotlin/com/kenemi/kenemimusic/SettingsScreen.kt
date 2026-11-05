@@ -306,7 +306,6 @@ fun SettingsScreen(
 
 } // Column
 
-
 @Composable
 fun CacheRow(
     title: String,
@@ -382,6 +381,8 @@ expect fun savePlaylists(playlists: List<Playlist>)
 expect fun loadStats(): List<PlayEventData>
 
 expect fun clearImageMemoryCache()
+expect fun saveImageUrl(key: String, url: String)
+expect fun loadImageUrl(key: String): String?
 expect fun getImageDiskBytes(url: String): ByteArray?
 expect fun saveImageDiskBytes(url: String, bytes: ByteArray)
 expect fun clearImageDiskCache()

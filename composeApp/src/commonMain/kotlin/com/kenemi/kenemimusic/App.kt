@@ -23,8 +23,8 @@ interface PlayerActions {
     fun previous()
     fun seekTo(position: Float)
     fun toggleShuffle()
-    fun toggleRepeat()
     fun setVolume(volume: Int)
+    fun toggleRepeat()
 }
 
 val LocalNavigate = staticCompositionLocalOf<(Screen) -> Unit> { {} }
@@ -60,6 +60,8 @@ fun App(
     var isDarkTheme by remember { mutableStateOf(initialDarkTheme) }
     val actions = playerController ?: LocalPlayerActions.current
 
+    val scrollPositionState = remember { ScrollPositionState() }
+
     CompositionLocalProvider(
         LocalMusicLibrary provides library,
         LocalPlayerState provides playerState,
@@ -69,6 +71,7 @@ fun App(
         LocalStats provides statsState,
         LocalNavigate provides { currentScreen = it },
         LocalPlayerBackground provides (currentScreen is Screen.PLAYER),
+        LocalScrollPosition provides scrollPositionState,
     ) {
         KenemiMusicTheme(darkTheme = isDarkTheme) {
             Column(modifier = Modifier.fillMaxSize()) {

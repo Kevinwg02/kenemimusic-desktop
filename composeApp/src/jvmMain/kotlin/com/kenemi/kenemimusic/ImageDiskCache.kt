@@ -29,8 +29,32 @@ object ImageDiskCache {
         File(dir, keyFor(url)).writeBytes(bytes)
     }
 
+    // Cache des URLs Deezer (artistes/albums) — fichier texte séparé
+    private val urlCacheFile: File by lazy {
+        File(System.getProperty("user.home"), ".kenemimusic/image_urls.txt")
+    }
+    private val urlCache: MutableMap<String, String> by lazy {
+        val map = mutableMapOf<String, String>()
+        if (urlCacheFile.exists()) {
+            urlCacheFile.readLines().forEach { line ->
+                val parts = line.split("|", limit = 2)
+                if (parts.size == 2) map[parts[0]] = parts[1]
+            }
+        }
+        map
+    }
+
+    fun putUrl(key: String, url: String) {
+        urlCache[key] = url
+        urlCacheFile.writeText(urlCache.entries.joinToString("\n") { "${it.key}|${it.value}" })
+    }
+
+    fun getUrl(key: String): String? = urlCache[key]
+
     fun clear() {
         dir.listFiles()?.forEach { it.delete() }
+        urlCache.clear()
+        if (urlCacheFile.exists()) urlCacheFile.delete()
     }
 
     fun sizeKb(): Long {

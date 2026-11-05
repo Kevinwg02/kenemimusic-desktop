@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 @Composable
 fun SearchScreen() {
@@ -170,10 +171,11 @@ fun SearchSectionHeader(title: String, count: Int) {
             color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
-
 @Composable
 fun SearchArtistRow(artist: Artist, onClick: () -> Unit) {
     var imageUrl by remember(artist.name) { mutableStateOf<String?>(null) }
+    var showPicker by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(artist.name) { imageUrl = ImageService.getArtistImageUrl(artist.name) }
 
     Row(modifier = Modifier.fillMaxWidth().clickable { onClick() }
@@ -193,17 +195,35 @@ fun SearchArtistRow(artist: Artist, onClick: () -> Unit) {
             Text("${artist.songCount} titres", fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        // ✎ Changer la photo
+        IconButton(onClick = { showPicker = true }, modifier = Modifier.size(32.dp)) {
+            Text("✎", fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
+        }
         Icon(imageVector = Icons.Next, contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
             modifier = Modifier.size(14.dp))
     }
     Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).padding(start = 72.dp)
         .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)))
+
+    if (showPicker) {
+        ArtistImagePickerDialog(
+            artistName = artist.name,
+            onPicked = { url ->
+                showPicker = false
+                if (url.isNotBlank()) imageUrl = url
+                else scope.launch { imageUrl = ImageService.getArtistImageUrl(artist.name) }
+            },
+            onDismiss = { showPicker = false }
+        )
+    }
 }
 
 @Composable
 fun SearchAlbumRow(album: Album, onClick: () -> Unit) {
     var coverUrl by remember(album.id) { mutableStateOf<String?>(null) }
+    var showOptions by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(album.id) { coverUrl = ImageService.getAlbumCoverUrl(album.name, album.artist) }
 
     Row(modifier = Modifier.fillMaxWidth().clickable { onClick() }
@@ -224,10 +244,23 @@ fun SearchAlbumRow(album: Album, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+        IconButton(onClick = { showOptions = true }, modifier = Modifier.size(32.dp)) {
+            Text("✎", fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
+        }
         Icon(imageVector = Icons.Next, contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
             modifier = Modifier.size(14.dp))
     }
     Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).padding(start = 72.dp)
         .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)))
+
+    if (showOptions) {
+        AlbumImageOptionsDialog(
+            album = album,
+            onChanged = {
+                scope.launch { coverUrl = ImageService.getAlbumCoverUrl(album.name, album.artist) }
+            },
+            onDismiss = { showOptions = false }
+        )
+    }
 }

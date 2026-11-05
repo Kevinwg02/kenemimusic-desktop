@@ -313,8 +313,16 @@ fun SongListPanel(onSongClick: (Song) -> Unit = {}) {
         }.toMap()
     }
 
-    val listState = rememberLazyListState()
+    val scrollPos = LocalScrollPosition.current
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = scrollPos.restore("player_songs")
+    )
     val scope = rememberCoroutineScope()
+
+    // Sauvegarder la position
+    LaunchedEffect(listState.firstVisibleItemIndex) {
+        scrollPos.save("player_songs", listState.firstVisibleItemIndex)
+    }
 
     // Auto-scroll to current song
     LaunchedEffect(playerState.currentSong?.id) {

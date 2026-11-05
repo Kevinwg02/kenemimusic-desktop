@@ -31,8 +31,15 @@ fun ArtistsScreen(onArtistClick: (String) -> Unit = {}) {
         artists.groupBy { it.name.firstOrNull()?.uppercaseChar() ?: '#' }.toSortedMap()
     }
     val letters = grouped.keys.toList()
-    val gridState = rememberLazyGridState()
+    val scrollPos = LocalScrollPosition.current
+    val gridState = rememberLazyGridState(
+        initialFirstVisibleItemIndex = scrollPos.restore("artists")
+    )
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(gridState.firstVisibleItemIndex) {
+        scrollPos.save("artists", gridState.firstVisibleItemIndex)
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         ScreenHeader(title = "Artistes", count = "${artists.size} artistes")
@@ -78,11 +85,15 @@ fun ArtistsScreen(onArtistClick: (String) -> Unit = {}) {
         }
     }
 }
-
 @Composable
 fun ArtistBubble(artist: Artist, onClick: () -> Unit) {
     var imageUrl by remember(artist.name) { mutableStateOf<String?>(null) }
-    LaunchedEffect(artist.name) { imageUrl = ImageService.getArtistImageUrl(artist.name) }
+    var showPicker by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(artist.name) {
+        imageUrl = ImageService.getArtistImageUrl(artist.name)
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
@@ -94,16 +105,60 @@ fun ArtistBubble(artist: Artist, onClick: () -> Unit) {
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            AsyncImage(url = imageUrl, modifier = Modifier.fillMaxSize(),
-                placeholder = { ArtistInitials(name = artist.name) })
+            AsyncImage(
+                url = imageUrl,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = { ArtistInitials(name = artist.name) }
+            )
+
+            // Bouton modifier la photo
+            Box(
+                modifier = Modifier.align(Alignment.TopEnd)
+                    .padding(6.dp)
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                    .clickable { showPicker = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("✎", fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.primary)
+            }
         }
-        Text(text = artist.name, fontSize = 12.sp, fontWeight = FontWeight.W500,
+
+        Text(
+            text = artist.name,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.W500,
             color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-        Text(text = "${artist.songCount} titres", fontSize = 11.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = "${artist.songCount} titres",
+            fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    if (showPicker) {
+        ArtistImagePickerDialog(
+            artistName = artist.name,
+            onPicked = { url ->
+                scope.launch {
+                    imageUrl = if (url.isBlank()) {
+                        ImageService.getArtistImageUrl(artist.name)
+                    } else url
+                }
+                showPicker = false
+            },
+            onDismiss = { showPicker = false }
+        )
     }
 }
 
@@ -134,8 +189,15 @@ fun AlbumsScreen(onAlbumClick: (Long) -> Unit = {}) {
         albums.groupBy { it.name.firstOrNull()?.uppercaseChar() ?: '#' }.toSortedMap()
     }
     val letters = grouped.keys.toList()
-    val gridState = rememberLazyGridState()
+    val scrollPos = LocalScrollPosition.current
+    val gridState = rememberLazyGridState(
+        initialFirstVisibleItemIndex = scrollPos.restore("albums")
+    )
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(gridState.firstVisibleItemIndex) {
+        scrollPos.save("albums", gridState.firstVisibleItemIndex)
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         ScreenHeader(title = "Albums", count = "${albums.size} albums")
@@ -186,39 +248,104 @@ fun AlbumsScreen(onAlbumClick: (Long) -> Unit = {}) {
 @Composable
 fun AlbumCard(album: Album, onClick: () -> Unit) {
     var coverUrl by remember(album.id) { mutableStateOf<String?>(null) }
-    LaunchedEffect(album.id) { coverUrl = ImageService.getAlbumCoverUrl(album.name, album.artist) }
+    var showImageOptions by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+
+    LaunchedEffect(album.id) {
+        coverUrl = ImageService.getAlbumCoverUrl(album.name, album.artist)
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-            .clickable { onClick() }.background(MaterialTheme.colorScheme.surface)
+            .clickable { onClick() }
+            .background(MaterialTheme.colorScheme.surface)
             .padding(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().aspectRatio(1f)
-                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            AsyncImage(url = coverUrl, modifier = Modifier.fillMaxSize(),
-                placeholder = { AlbumCoverPlaceholder(album = album) })
+            AsyncImage(
+                url = coverUrl,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = {
+                    AlbumCoverPlaceholder(album = album)
+                }
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(6.dp)
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                    .clickable { showImageOptions = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "⋮",
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
-        Column(modifier = Modifier.padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(text = album.name, fontSize = 12.sp, fontWeight = FontWeight.W500,
+        }
+
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = album.name,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.W500,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(text = album.artist, fontSize = 11.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Text(
+                text = album.artist,
+                fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(text = buildString {
-                if (album.year > 0) { append(album.year); append(" • ") }
-                append("${album.songCount} titre${if (album.songCount > 1) "s" else ""}")
-            }, fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Text(
+                text = buildString {
+                    if (album.year > 0) {
+                        append(album.year)
+                        append(" • ")
+                    }
+                    append("${album.songCount} titre${if (album.songCount > 1) "s" else ""}")
+                },
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
         }
+    if (showImageOptions && album != null) {
+        AlbumImageOptionsDialog(
+            album = album,
+            onChanged = {
+                scope.launch {
+                    coverUrl = ImageService.getAlbumCoverUrl(
+                        album.name,
+                        album.artist
+                    )
+                }
+            },
+            onDismiss = { showImageOptions = false }
+        )
     }
-}
+    }
 
 @Composable
 fun AlbumCoverPlaceholder(album: Album) {

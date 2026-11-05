@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,8 +34,16 @@ fun SongsScreen() {
         }.toMap()
     }
 
-    val listState = rememberLazyListState()
+    val scrollPos = LocalScrollPosition.current
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = scrollPos.restore("songs")
+    )
     val scope = rememberCoroutineScope()
+
+    // Sauvegarder la position quand elle change
+    LaunchedEffect(listState.firstVisibleItemIndex) {
+        scrollPos.save("songs", listState.firstVisibleItemIndex)
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 

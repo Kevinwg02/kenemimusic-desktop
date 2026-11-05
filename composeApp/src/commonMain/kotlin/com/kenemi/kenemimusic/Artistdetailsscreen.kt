@@ -11,12 +11,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 @Composable
 fun ArtistDetailScreen(artistName: String, onBack: () -> Unit) {
     val library = LocalMusicLibrary.current
     val actions = LocalPlayerActions.current
-
+    var showImagePicker by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     var artistImageUrl by remember(artistName) { mutableStateOf<String?>(null) }
     LaunchedEffect(artistName) {
         artistImageUrl = ImageService.getArtistImageUrl(artistName)
@@ -48,7 +50,8 @@ fun ArtistDetailScreen(artistName: String, onBack: () -> Unit) {
             }
             Box(
                 modifier = Modifier.size(40.dp).clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable { showImagePicker = true },
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -57,11 +60,26 @@ fun ArtistDetailScreen(artistName: String, onBack: () -> Unit) {
                     placeholder = { ArtistInitials(name = artistName) }
                 )
             }
+
             Column {
                 Text(text = artistName, fontSize = 16.sp, fontWeight = FontWeight.W500,
                     color = MaterialTheme.colorScheme.onSurface)
                 Text(text = "${artistSongs.size} titre${if (artistSongs.size > 1) "s" else ""}",
                     fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (showImagePicker) {
+                ArtistImagePickerDialog(
+                    artistName = artistName,
+                    onPicked = { url ->
+                        scope.launch {
+                            artistImageUrl = if (url.isBlank()) {
+                                ImageService.getArtistImageUrl(artistName)
+                            } else url
+                        }
+                        showImagePicker = false
+                    },
+                    onDismiss = { showImagePicker = false }
+                )
             }
         }
 
